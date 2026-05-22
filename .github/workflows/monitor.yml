@@ -1,0 +1,46 @@
+name: ppomppu hotdeal monitor
+
+on:
+  schedule:
+    - cron: '0 0 * * *'   # KST 09:00
+    - cron: '0 2 * * *'   # KST 11:00
+    - cron: '0 4 * * *'   # KST 13:00
+    - cron: '0 6 * * *'   # KST 15:00
+    - cron: '0 8 * * *'   # KST 17:00
+    - cron: '0 10 * * *'  # KST 19:00
+  workflow_dispatch:       # 수동 실행 버튼
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Seoul
+    permissions:
+      contents: write      # seen_ids.json 커밋용
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run price monitor
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          GH_TOKEN:   ${{ secrets.GH_DEPLOY_TOKEN }}
+          GH_OWNER:   nothing881122-netizen
+          GH_REPO:    flight-deals
+          GH_PATH:    deals.html
+          FORCE_RUN:  ${{ github.event_name == 'workflow_dispatch' && '1' || '0' }}
+        run: python price_monitor.py
+
+      - name: Persist seen_ids.json
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add seen_ids.json
+          git diff --staged --quiet || git commit -m "chore: update seen_ids [skip ci]"
+          git push
