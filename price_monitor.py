@@ -12,6 +12,7 @@ import json
 import os
 import re
 import sys
+import time
 import urllib.request
 import urllib.error
 from datetime import datetime, date
@@ -414,7 +415,8 @@ def deploy_to_github(html: str, token: str, owner: str, repo: str, path: str) ->
 # ntfy 알림
 # ─────────────────────────────────────────────
 
-def send_ntfy(topic: str, deals: list[dict], report_url: str = "") -> None:
+def send_ntfy(topic: str, deals: list[dict], report_url: str = "") -> bool:
+    """ntfy 발송. 성공 True / 최종 실패 False. 일시 오류 대비 3회 재시도(2s, 4s 백오프)."""
     lines = [f"참치/스팸 대박급 {len(deals)}건 발견!\n"]
     for d in deals:
         if d["price_per_unit"]:
@@ -439,16 +441,22 @@ def send_ntfy(topic: str, deals: list[dict], report_url: str = "") -> None:
         "actions":  actions,
     }, ensure_ascii=False).encode("utf-8")
 
-    try:
-        req = urllib.request.Request(
-            "https://ntfy.sh",
-            data=payload,
-            headers={"Content-Type": "application/json; charset=utf-8"},
-        )
-        urllib.request.urlopen(req, timeout=10)
-        print("  [OK] ntfy 알림 전송 완료", flush=True)
-    except Exception as e:
-        print(f"  [ERROR] ntfy 전송 실패: {e}", flush=True)
+    for attempt in range(1, 4):
+        try:
+            req = urllib.request.Request(
+                "https://ntfy.sh",
+                data=payload,
+                headers={"Content-Type": "application/json; charset=utf-8"},
+            )
+            urllib.request.urlopen(req, timeout=15)
+            print("  [OK] ntfy 알림 전송 완료", flush=True)
+            return True
+        except Exception as e:
+            print(f"  [WARN] ntfy 전송 실패 (시도 {attempt}/3): {e}", flush=True)
+            if attempt < 3:
+                time.sleep(2 ** attempt)  # 2s, 4s
+    print("  [ERROR] ntfy 전송 최종 실패 — seen 갱신 보류 (다음 실행에서 재시도)", flush=True)
+    return False
 
 
 # ─────────────────────────────────────────────
@@ -512,14 +520,15 @@ def main() -> None:
         except Exception as e:
             print(f"  [ERROR] GitHub 배포 실패: {e}", flush=True)
 
-    # 6. 새 대박급 딜 알림
+    # 6. 새 대박급 딜 알림 — ntfy 성공한 경우에만 seen 갱신
     if new_alert_deals:
         print(f"  새 대박급 딜 {len(new_alert_deals)}건 발견 — 알림 전송", flush=True)
+        notified = True
         if ntfy_topic:
-            send_ntfy(ntfy_topic, new_alert_deals, report_url)
-        # seen에 추가
-        seen.update(d["id"] for d in new_alert_deals)
-        save_seen(seen)
+            notified = send_ntfy(ntfy_topic, new_alert_deals, report_url)
+        if notified:
+            seen.update(d["id"] for d in new_alert_deals)
+            save_seen(seen)
     else:
         print("  새 대박급 딜 없음", flush=True)
 
