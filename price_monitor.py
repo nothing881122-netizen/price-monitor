@@ -98,7 +98,7 @@ class PpomppuParser(HTMLParser):
 
 
 def fetch_search(query: str, timeout: int = 15) -> list[dict]:
-    """키워드 검색 결과 페이지를 가져와 파싱된 게시물 리스트 반환."""
+    """단일 검색어로 검색 페이지를 가져와 파싱된 게시물 리스트 반환."""
     encoded = urllib.parse.quote(query.encode("euc-kr"))
     url = PPOMPPU_SEARCH_URL.format(kw=encoded)
     req = urllib.request.Request(url, headers=HEADERS)
@@ -112,6 +112,21 @@ def fetch_search(query: str, timeout: int = 15) -> list[dict]:
     parser = PpomppuParser()
     parser.feed(html)
     return parser.posts
+
+
+def fetch_search_multi(queries: list[str], timeout: int = 15, delay: float = 1.0) -> list[dict]:
+    """여러 검색어로 결과 합치기 + ID 중복 제거 (한글/영문/별칭 모두 커버)."""
+    seen_ids: set = set()
+    merged: list[dict] = []
+    for i, q in enumerate(queries):
+        if i > 0:
+            time.sleep(delay)
+        posts = fetch_search(q, timeout=timeout)
+        for p in posts:
+            if p["id"] not in seen_ids:
+                seen_ids.add(p["id"])
+                merged.append(p)
+    return merged
 
 
 # ─────────────────────────────────────────────
@@ -173,17 +188,33 @@ def parse_quantity(title: str, query: str) -> int | None:
     return None
 
 
-# 단가 sanity 범위 (원/캔 or 원/개)
-PPU_MIN = 200
-PPU_MAX = 30_000
+# 단가 sanity 기본값 (식품 기준; 키워드별로 override 가능)
+DEFAULT_PPU_MIN = 200
+DEFAULT_PPU_MAX = 30_000
 
 
-def parse_post(post: dict, keyword_id: str, query: str) -> dict:
+def parse_post(
+    post: dict,
+    keyword_id: str,
+    query: str,
+    *,
+    single_item: bool = False,
+    ppu_min: int = DEFAULT_PPU_MIN,
+    ppu_max: int = DEFAULT_PPU_MAX,
+) -> dict:
+    """
+    single_item=True 면 수량 파싱 안 하고 총가격을 단가로 사용 (가전/전자제품 등).
+    ppu_min/max 는 키워드별 단가 sanity 범위.
+    """
     total = parse_total_price(post["title"])
-    qty   = parse_quantity(post["title"], query)
-    ppu   = (total // qty) if (total and qty and qty > 0) else None
-    # sanity: 비현실적 단가는 무효화 (통계 왜곡 방지)
-    if ppu is not None and not (PPU_MIN <= ppu <= PPU_MAX):
+    if single_item:
+        qty = 1
+        ppu = total
+    else:
+        qty = parse_quantity(post["title"], query)
+        ppu = (total // qty) if (total and qty and qty > 0) else None
+    # sanity
+    if ppu is not None and not (ppu_min <= ppu <= ppu_max):
         ppu = None
     return {
         **post,
@@ -458,10 +489,15 @@ def main():
 
     for i, kw in enumerate(keywords):
         kid = kw["id"]
-        query = kw["search_query"]
+        # 단일 검색어 OR 검색어 리스트 둘 다 지원
+        queries = kw.get("search_queries") or [kw.get("search_query", "")]
+        queries = [q for q in queries if q]
         excludes = [e.lower() for e in kw.get("exclude", [])]
-        print(f"\n[{kid}] '{query}' 검색...", flush=True)
-        posts = fetch_search(query, timeout=timeout)[:max_posts]
+        single_item = kw.get("single_item", False)
+        ppu_min = kw.get("ppu_min", DEFAULT_PPU_MIN)
+        ppu_max = kw.get("ppu_max", DEFAULT_PPU_MAX)
+        print(f"\n[{kid}] 검색어 {queries}...", flush=True)
+        posts = fetch_search_multi(queries, timeout=timeout, delay=1.0)[:max_posts]
         if excludes:
             before = len(posts)
             posts = [p for p in posts if not any(e in p["title"].lower() for e in excludes)]
@@ -469,7 +505,12 @@ def main():
         else:
             print(f"  게시물 {len(posts)}건 수집", flush=True)
 
-        parsed = [parse_post(p, kid, query) for p in posts]
+        # 첫 검색어를 query 인자로 (수량 파싱의 BOX_QTY_HINT 용)
+        primary_query = queries[0] if queries else kid
+        parsed = [
+            parse_post(p, kid, primary_query, single_item=single_item, ppu_min=ppu_min, ppu_max=ppu_max)
+            for p in posts
+        ]
         for d in parsed:
             d["unit"] = kw.get("unit", "개")
 
