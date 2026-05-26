@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-뽐뿌 키워드 기반 핫딜 모니터 (v2)
+알구몬 키워드 기반 핫딜 모니터 (v3)
 
-- keywords.json 의 각 키워드를 뽐뿌 검색에 넣어 게시물 수집
-- 캔당/개당 단가의 통계(IQR outlier 제거 → 25% 백분위)를 자체 산출
-- 새 게시물 단가가 P25 × alert_pct / 100 이하면 알림 + HTML 리포트
-- 외부 기준가(pricewagon 등) 의존 없음 — 시장 변동에 자동 적응
+- keywords.json 의 각 키워드를 algumon.com 검색에 넣어 카드 수집
+- 알구몬이 이미 계산한 단가(N x M원 표기)를 활용 → 우리 수량 파싱 불필요
+- 캔당/개당 단가 통계(IQR outlier 제거 → 25% 백분위) → 임계값 산출
+- 외부 기준가 의존 없음, 알구몬이 뽐뿌·클리앙·어미새 등 통합 수집
 """
 
 from __future__ import annotations
@@ -35,11 +35,8 @@ SEEN_FILE     = ROOT / "seen_ids.json"
 REPORT_FILE   = ROOT / "deals.html"
 CONFIG_FILE   = ROOT / "config.json"
 
-PPOMPPU_SEARCH_URL = (
-    "https://www.ppomppu.co.kr/zboard/zboard.php"
-    "?search_type=sub_memo&id=ppomppu&page_num=20&keyword={kw}"
-)
-PPOMPPU_VIEW_BASE  = "https://www.ppomppu.co.kr/zboard/"
+ALGUMON_SEARCH_URL = "https://www.algumon.com/n/deal?keyword={kw}"
+ALGUMON_DEAL_URL   = "https://www.algumon.com/n/deal/{id}"
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -48,79 +45,115 @@ HEADERS = {
     ),
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
-    "Referer": "https://www.ppomppu.co.kr/zboard/zboard.php?id=ppomppu",
-    "Connection": "keep-alive",
-    "Upgrade-Insecure-Requests": "1",
+    "Referer": "https://www.algumon.com/",
 }
 
 # ─────────────────────────────────────────────
-# HTML 파서
+# 알구몬 카드 파서 — 정규식 기반 (Svelte SSR HTML)
 # ─────────────────────────────────────────────
 
-class PpomppuParser(HTMLParser):
-    """뽐뿌 게시판 / 검색 결과 목록 파서 — 제목 링크만 추출"""
-
-    def __init__(self):
-        super().__init__()
-        self.posts: list[dict] = []
-        self._capturing = False
-        self._current: dict = {}
-        self._buf: list[str] = []
-
-    def handle_starttag(self, tag, attrs):
-        if tag != "a":
-            return
-        attr = dict(attrs)
-        href = attr.get("href", "")
-        if "view.php" in href and "id=ppomppu" in href:
-            m = re.search(r"no=(\d+)", href)
-            if m:
-                self._capturing = True
-                self._buf = []
-                self._current = {
-                    "id":  m.group(1),
-                    "url": PPOMPPU_VIEW_BASE + href,
-                }
-
-    def handle_endtag(self, tag):
-        if tag == "a" and self._capturing:
-            self._capturing = False
-            text = "".join(self._buf).strip()
-            if text:
-                self._current["title"] = text
-                self.posts.append(self._current)
-            self._current = {}
-            self._buf = []
-
-    def handle_data(self, data):
-        if self._capturing:
-            self._buf.append(data)
+# 카드를 deal-feed-card 단위로 분할. 클래스 hash가 변동 가능하므로 prefix만 매치.
+_CARD_SPLIT_RE = re.compile(r'class="deal-feed-card[^"]*"', re.IGNORECASE)
+# 카드 내 정보 추출 패턴
+_DEAL_ID_RE     = re.compile(r'/n/deal/(\d+)')
+_REDIRECT_RE    = re.compile(r'href="(https?://(?:www\.)?algumon\.com/l/d/\d+\?[^"]+)"')
+_TITLE_ALT_RE   = re.compile(r'<img[^>]*alt="([^"]+)"[^>]*class="w-full[^>]*"', re.IGNORECASE)
+# 가격 텍스트: "46,941원 (18 x 2,607원)" 또는 "46,941원 (배송 무료)" 형태 등
+# 단가 표기 "N x M원" 우선 추출, 없으면 총가만
+_UNIT_RE        = re.compile(r'(\d{1,4})\s*[x×]\s*([\d,]+)\s*원')
+_TOTAL_RE       = re.compile(r'([\d,]+)\s*원')
+# 상대 시간 — "4시간 전", "2일 전" 등
+_AGE_RE         = re.compile(r'(\d+)\s*(분|시간|일|주|개월|년)\s*전')
+# 출처 — 뽐뿌, 클리앙, 어미새 등 사이트명. 보통 카드 헤더에 표시
+_SOURCE_NAMES   = ["뽐뿌", "클리앙", "어미새", "쿨엔조이", "루리웹", "fmkorea", "에펨코리아",
+                   "퀘이사존", "도탁스", "디시", "와이고수", "보드나라"]
 
 
-def _parse_dates_from_html(html: str) -> dict[str, datetime]:
-    """검색 결과 HTML에서 게시물 ID → 작성일시 매핑 추출."""
-    id_positions = [
-        (m.start(), m.group(1))
-        for m in re.finditer(r'baseList-title[^>]*href="view\.php\?[^"]*no=(\d+)"', html)
-    ]
-    date_re = re.compile(r'title="(\d{2})\.(\d{2})\.(\d{2})\s+(\d{2}):(\d{2}):(\d{2})"')
-    out: dict[str, datetime] = {}
-    for i, (pos, pid) in enumerate(id_positions):
-        end = id_positions[i + 1][0] if i + 1 < len(id_positions) else len(html)
-        m = date_re.search(html, pos, end)
-        if m:
-            yy, mm, dd, h, mi, s = (int(x) for x in m.groups())
-            try:
-                out[pid] = datetime(2000 + yy, mm, dd, h, mi, s)
-            except ValueError:
-                pass
-    return out
+def _strip_tags(html: str) -> str:
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html)).strip()
+
+
+def _parse_card(card_html: str) -> dict | None:
+    """단일 카드 HTML에서 정보 추출."""
+    m_id = _DEAL_ID_RE.search(card_html)
+    if not m_id:
+        return None
+    deal_id = m_id.group(1)
+
+    # 텍스트 일부 (앞 500자 정도)
+    text = _strip_tags(card_html)
+
+    # 제목 — img alt 우선
+    m_title = _TITLE_ALT_RE.search(card_html)
+    title = m_title.group(1).strip() if m_title else ""
+    if not title:
+        # fallback — 텍스트 첫 80자
+        title = text[:80]
+
+    # 외부 redirect URL (쇼핑몰로 이어짐, v=&t= 토큰 포함)
+    m_redirect = _REDIRECT_RE.search(card_html)
+    external_url = m_redirect.group(1).replace("&amp;", "&") if m_redirect else ""
+    # 알구몬 상세 페이지 URL (만료 없음)
+    detail_url = ALGUMON_DEAL_URL.format(id=deal_id)
+
+    # 단가: "18 x 2,607원" — 알구몬이 직접 계산
+    m_unit = _UNIT_RE.search(text)
+    if m_unit:
+        qty = int(m_unit.group(1))
+        ppu = int(m_unit.group(2).replace(",", ""))
+    else:
+        qty = None
+        ppu = None
+
+    # 총가
+    prices = [int(x.replace(",", "")) for x in _TOTAL_RE.findall(text)]
+    prices = [p for p in prices if 500 <= p <= 5_000_000]
+    total_price = prices[0] if prices else None  # 첫 큰 가격이 총가
+
+    # 시간 — "4시간 전" 등
+    m_age = _AGE_RE.search(text)
+    age_text = m_age.group(0) if m_age else ""
+    age_dt = _age_to_datetime(m_age) if m_age else None
+
+    # 출처
+    source = ""
+    for s in _SOURCE_NAMES:
+        if s in text:
+            source = s
+            break
+
+    return {
+        "id":          deal_id,
+        "title":       title,
+        "url":         detail_url,
+        "external":    external_url,
+        "source":      source,
+        "total_price": total_price,
+        "quantity":    qty,
+        "price_per_unit": ppu,
+        "age_text":    age_text,
+        "date":        age_dt,
+    }
+
+
+def _age_to_datetime(m: re.Match) -> datetime:
+    n = int(m.group(1))
+    unit = m.group(2)
+    now = datetime.now()
+    delta = {
+        "분":   timedelta(minutes=n),
+        "시간": timedelta(hours=n),
+        "일":   timedelta(days=n),
+        "주":   timedelta(weeks=n),
+        "개월": timedelta(days=30 * n),
+        "년":   timedelta(days=365 * n),
+    }[unit]
+    return now - delta
 
 
 def fetch_search(query: str, timeout: int = 15) -> list[dict]:
-    """단일 검색어로 검색 페이지를 가져와 파싱된 게시물 리스트 반환 (date 포함)."""
-    encoded = urllib.parse.quote(query.encode("euc-kr"))
-    url = PPOMPPU_SEARCH_URL.format(kw=encoded)
+    """알구몬 검색 결과에서 카드 리스트 반환 (단가/날짜/출처 포함)."""
+    url = ALGUMON_SEARCH_URL.format(kw=urllib.parse.quote(query.encode("utf-8")))
     req = urllib.request.Request(url, headers=HEADERS)
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
@@ -128,166 +161,36 @@ def fetch_search(query: str, timeout: int = 15) -> list[dict]:
     except Exception as e:
         print(f"  [ERROR] '{query}' 검색 실패: {e}", flush=True)
         return []
-    html = raw.decode("euc-kr", errors="replace")
-    parser = PpomppuParser()
-    parser.feed(html)
-    date_map = _parse_dates_from_html(html)
-    for p in parser.posts:
-        p["date"] = date_map.get(p["id"])
-    return parser.posts
+    html = raw.decode("utf-8", errors="replace")
+
+    # deal-feed-card 위치들로 분할
+    positions = [m.start() for m in _CARD_SPLIT_RE.finditer(html)]
+    if not positions:
+        return []
+    cards: list[dict] = []
+    seen_ids: set[str] = set()
+    for i, pos in enumerate(positions):
+        end = positions[i + 1] if i + 1 < len(positions) else min(pos + 15000, len(html))
+        card_html = html[pos:end]
+        info = _parse_card(card_html)
+        if info and info["id"] not in seen_ids:
+            seen_ids.add(info["id"])
+            cards.append(info)
+    return cards
 
 
 def fetch_search_multi(queries: list[str], timeout: int = 15, delay: float = 1.0) -> list[dict]:
-    """여러 검색어로 결과 합치기 + ID 중복 제거 (한글/영문/별칭 모두 커버)."""
+    """여러 검색어로 결과 합치기 + ID 중복 제거."""
     seen_ids: set = set()
     merged: list[dict] = []
     for i, q in enumerate(queries):
         if i > 0:
             time.sleep(delay)
-        posts = fetch_search(q, timeout=timeout)
-        for p in posts:
-            if p["id"] not in seen_ids:
-                seen_ids.add(p["id"])
-                merged.append(p)
+        for c in fetch_search(q, timeout=timeout):
+            if c["id"] not in seen_ids:
+                seen_ids.add(c["id"])
+                merged.append(c)
     return merged
-
-
-# ─────────────────────────────────────────────
-# 가격 / 수량 파싱 (기존 로직 + 박스 단위 추정)
-# ─────────────────────────────────────────────
-
-BOX_QTY_HINT = {
-    "참치": 24,
-    "스팸": 18,
-}
-
-
-def parse_total_price(title: str) -> int | None:
-    """제목에서 총 가격 추출."""
-    m = re.search(r"\(\s*([\d,]+)\s*[/,]", title)
-    if m:
-        v = int(m.group(1).replace(",", ""))
-        if 500 <= v <= 1_000_000:
-            return v
-    prices = [int(x.replace(",", "")) for x in re.findall(r"([\d,]+)원", title)]
-    prices = [p for p in prices if 500 <= p <= 1_000_000]
-    if prices:
-        return prices[-1]
-    return None
-
-
-def parse_quantity(title: str, query: str) -> int | None:
-    """
-    수량(캔/개 기준) 추출 — 보수적 전략.
-    - "총 N개" 가 있으면 최우선
-    - 그 외엔 마지막 "N캔/개/입" 매치
-    - 곱셈은 의도적으로 사용 안 함 (오작동 위험)
-    """
-    # 1) "총 NN개" — 명시적 합계 우선
-    m = re.search(r"총\s*(\d+)\s*(?:개|캔|입)", title)
-    if m:
-        v = int(m.group(1))
-        if 1 < v <= 500:
-            return v
-
-    # 2) 단순 단위 매치 — 마지막 매치 사용 (보통 총합)
-    candidates = re.findall(r"(\d+)\s*(?:캔|개|입)", title)
-    if candidates:
-        # 큰 숫자(>1)만 후보. 1, 2 같은 작은 숫자가 "박스 1개" 식이면 안 됨
-        ints = [int(x) for x in candidates]
-        # 마지막 매치 우선 (보통 묶음의 총합)
-        for v in reversed(ints):
-            if 1 < v <= 500:
-                return v
-
-    # 3) 박스 단위
-    m = re.search(r"(\d+)\s*(?:박스|box)", title, re.IGNORECASE)
-    if m:
-        box = BOX_QTY_HINT.get(query, 6)
-        v = int(m.group(1)) * box
-        if 1 < v <= 500:
-            return v
-
-    return None
-
-
-# 단가 sanity 기본값 (식품 기준; 키워드별로 override 가능)
-DEFAULT_PPU_MIN = 200
-DEFAULT_PPU_MAX = 30_000
-
-
-def verify_alive(post_url: str, timeout: int = 8) -> bool:
-    """게시물 페이지가 실제로 살아있는지 GET으로 검증.
-    '존재하지 않' 문자열 또는 응답 < 40KB 면 죽은 페이지로 간주."""
-    req = urllib.request.Request(post_url, headers=HEADERS)
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            raw = r.read()
-    except Exception as e:
-        print(f"    [DEAD?] {post_url[-30:]}: {e}", flush=True)
-        return False
-    if len(raw) < 40_000:
-        print(f"    [DEAD?] 응답 작음 ({len(raw)} bytes): {post_url[-30:]}", flush=True)
-        return False
-    try:
-        html = raw.decode("euc-kr", errors="replace")
-    except Exception:
-        return True  # 디코드 실패해도 일단 살아있다 가정
-    for marker in ("존재하지 않", "없는 게시물", "삭제된 게시물"):
-        if marker in html:
-            print(f"    [DEAD] '{marker}' 마커 검출: {post_url[-30:]}", flush=True)
-            return False
-    return True
-
-
-def parse_post(
-    post: dict,
-    keyword_id: str,
-    query: str,
-    *,
-    single_item: bool = False,
-    ppu_min: int = DEFAULT_PPU_MIN,
-    ppu_max: int = DEFAULT_PPU_MAX,
-) -> dict:
-    """
-    single_item=True 면 수량 파싱 안 하고 총가격을 단가로 사용 (가전/전자제품 등).
-    ppu_min/max 는 키워드별 단가 sanity 범위.
-    """
-    total = parse_total_price(post["title"])
-    if single_item:
-        qty = 1
-        ppu = total
-    else:
-        qty = parse_quantity(post["title"], query)
-        ppu = (total // qty) if (total and qty and qty > 0) else None
-    # sanity
-    if ppu is not None and not (ppu_min <= ppu <= ppu_max):
-        ppu = None
-    return {
-        **post,
-        "keyword_id":  keyword_id,
-        "total_price": total,
-        "quantity":    qty,
-        "price_per_unit": ppu,
-        # date 는 post에서 이미 들어있음
-    }
-
-
-def humanize_age(dt: datetime | None, ref: datetime | None = None) -> str:
-    """작성일시 → '3시간 전', '2일 전' 같은 표현. None 이면 빈 문자열."""
-    if dt is None:
-        return ""
-    if ref is None:
-        ref = datetime.now()
-    delta = ref - dt
-    s = int(delta.total_seconds())
-    if s < 0:
-        return "방금"
-    if s < 3600:
-        return f"{max(1, s // 60)}분 전"
-    if s < 86400:
-        return f"{s // 3600}시간 전"
-    return f"{s // 86400}일 전"
 
 
 # ─────────────────────────────────────────────
@@ -328,6 +231,67 @@ def stats_with_iqr(unit_prices: list[int], k: float = 1.5) -> dict:
 
 
 # ─────────────────────────────────────────────
+# 단가 sanity (식품 기본; 키워드별 override)
+# ─────────────────────────────────────────────
+
+DEFAULT_PPU_MIN = 200
+DEFAULT_PPU_MAX = 30_000
+
+
+def apply_sanity(card: dict, *, single_item: bool, ppu_min: int, ppu_max: int) -> dict:
+    """single_item=True 이면 수량 무시, 총가를 단가로. sanity 범위 밖이면 ppu=None."""
+    if single_item:
+        card["quantity"] = 1
+        card["price_per_unit"] = card.get("total_price")
+    ppu = card.get("price_per_unit")
+    if ppu is not None and not (ppu_min <= ppu <= ppu_max):
+        card["price_per_unit"] = None
+    return card
+
+
+def humanize_age(dt: datetime | None, ref: datetime | None = None) -> str:
+    if dt is None:
+        return ""
+    if ref is None:
+        ref = datetime.now()
+    s = int((ref - dt).total_seconds())
+    if s < 0:
+        return "방금"
+    if s < 3600:
+        return f"{max(1, s // 60)}분 전"
+    if s < 86400:
+        return f"{s // 3600}시간 전"
+    return f"{s // 86400}일 전"
+
+
+# ─────────────────────────────────────────────
+# 링크 검증 (알구몬 상세 페이지)
+# ─────────────────────────────────────────────
+
+def verify_alive(deal_url: str, timeout: int = 8) -> bool:
+    """알구몬 상세 페이지가 살아있는지 GET. '존재하지 않' 마커 또는 응답 너무 작으면 False."""
+    req = urllib.request.Request(deal_url, headers=HEADERS)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            raw = r.read()
+    except Exception as e:
+        print(f"    [DEAD?] {deal_url[-30:]}: {e}", flush=True)
+        return False
+    if len(raw) < 20_000:
+        print(f"    [DEAD?] 응답 작음 ({len(raw)} bytes)", flush=True)
+        return False
+    try:
+        html = raw.decode("utf-8", errors="replace")
+    except Exception:
+        return True
+    for marker in ("존재하지 않", "찾을 수 없", "삭제된", "Not Found"):
+        if marker in html:
+            print(f"    [DEAD] '{marker}' 마커 검출", flush=True)
+            return False
+    return True
+
+
+# ─────────────────────────────────────────────
 # 중복 방지
 # ─────────────────────────────────────────────
 
@@ -351,21 +315,32 @@ def save_seen(seen: set) -> None:
 
 def deal_card_html(d: dict, threshold: int) -> str:
     badge = ""
-    if d["price_per_unit"] and threshold and d["price_per_unit"] <= threshold:
+    if d.get("price_per_unit") and threshold and d["price_per_unit"] <= threshold:
         badge = '<span class="badge-deal">🔥 알림 기준 이하</span>'
-    if d["price_per_unit"]:
+    if d.get("price_per_unit"):
+        unit = d.get("unit", "개")
+        qty = d.get("quantity") or 1
+        total = d.get("total_price") or 0
         price_line = (
-            f'<span class="price">{d["price_per_unit"]:,}원/{d["unit"]}</span> '
-            f'<span class="meta">(총 {d["total_price"]:,}원 / {d["quantity"]}{d["unit"]})</span>'
+            f'<span class="price">{d["price_per_unit"]:,}원/{unit}</span> '
+            f'<span class="meta">(총 {total:,}원 / {qty}{unit})</span>'
         )
     else:
         price_line = '<span class="price-unknown">가격 파싱 불가</span>'
     age = humanize_age(d.get("date"))
     age_html = f'<span class="age">{age}</span>' if age else ''
+    src = d.get("source", "")
+    src_html = f'<span class="src">📍 {src}</span>' if src else ''
+    # 외부 redirect 우선, 없으면 알구몬 상세
+    primary = d.get("external") or d.get("url")
+    detail  = d.get("url")
     return f"""<div class="card">
-  <p class="card-title">{d['title'][:80]} {age_html}</p>
+  <p class="card-title">{d['title'][:80]} {age_html} {src_html}</p>
   <p class="card-price">{price_line} {badge}</p>
-  <a href="{d['url']}" target="_blank" class="btn">뽐뿌 게시물 →</a>
+  <div class="card-actions">
+    <a href="{primary}" target="_blank" class="btn btn-primary">🛒 쇼핑몰로</a>
+    <a href="{detail}" target="_blank" class="btn">알구몬 상세</a>
+  </div>
 </div>"""
 
 
@@ -380,7 +355,7 @@ def keyword_section_html(kw: dict, parsed: list[dict], stats: dict, threshold: i
             body += "".join(deal_card_html(d, threshold) for d in hits)
         else:
             body += '<p class="note">현재 기준 이하 게시물 없음</p>'
-        top = [p for p in parsed if p["price_per_unit"]][:5]
+        top = [p for p in parsed if p.get("price_per_unit")][:5]
         if top:
             body += '<h4>최근 게시물</h4>'
             for d in top:
@@ -410,13 +385,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .keyword h4{font-size:14px;margin:14px 0 8px;color:#7C4530}
 .card{border-left:3px solid #D0663C;background:#FFFCF8;padding:10px 12px;border-radius:6px;margin-bottom:8px}
 .card-title{font-size:13px;font-weight:600;margin-bottom:4px;line-height:1.4}
-.card-price{font-size:13px;color:#2C1810}
+.card-price{font-size:13px;color:#2C1810;margin-bottom:8px}
 .card-price .price{font-weight:700;color:#B0502C;font-size:15px}
 .card-price .meta{color:#8B7355;font-size:12px}
 .card-price .price-unknown{color:#8B7355;font-style:italic}
 .badge-deal{display:inline-block;background:#FAE2D4;color:#7C4530;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;margin-left:6px}
 .age{display:inline-block;color:#A89070;font-size:11px;font-weight:400;margin-left:4px}
-.btn{display:inline-block;color:#B0502C;text-decoration:none;font-size:12px;margin-top:6px}
+.src{display:inline-block;color:#7C4530;font-size:11px;font-weight:500;margin-left:4px;background:#FAE2D4;padding:1px 6px;border-radius:8px}
+.card-actions{display:flex;gap:6px;margin-top:6px}
+.btn{display:inline-block;color:#B0502C;text-decoration:none;font-size:12px;padding:5px 10px;border:1px solid #D0663C;border-radius:6px}
+.btn-primary{background:#D0663C;color:white;border:none}
 .footer{text-align:center;padding:24px 16px;font-size:12px;color:#B8986A}
 """
     return f"""<!DOCTYPE html>
@@ -430,12 +408,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <body>
   <div class="header">
     <h1>🛒 키워드 핫딜 모니터</h1>
-    <p class="subtitle">{checked_at} 기준 · 뽐뿌 검색 자체 통계</p>
+    <p class="subtitle">{checked_at} · 알구몬 통합 검색</p>
   </div>
   <div class="main">
     {"".join(sections)}
   </div>
-  <div class="footer">키워드별 P25 산출 → 알림 임계값 자동 결정</div>
+  <div class="footer">알구몬 통합 핫딜 · 키워드별 P25 자동 산출</div>
 </body>
 </html>"""
 
@@ -482,21 +460,22 @@ def deploy_to_github(html: str, token: str, owner: str, repo: str, path: str) ->
 def send_ntfy(topic: str, keyword: dict, hits: list[dict], threshold: int, report_url: str = "") -> bool:
     lines = [f"{keyword['emoji']} {keyword['name']} 핫딜 {len(hits)}건!\n"]
     for d in hits[:5]:
-        if d["price_per_unit"]:
+        if d.get("price_per_unit"):
             age = humanize_age(d.get("date"))
+            src = d.get("source", "")
             age_s = f" · {age}" if age else ""
-            lines.append(f"[{d['price_per_unit']:,}원/{d['unit']}{age_s}] {d['title'][:40]}")
+            src_s = f" · {src}" if src else ""
+            lines.append(f"[{d['price_per_unit']:,}원/{d.get('unit','개')}{age_s}{src_s}] {d['title'][:40]}")
     lines.append(f"\n알림 기준: ≤ {threshold:,}원/{keyword.get('unit','개')}")
     if report_url:
         lines.append(f"리포트: {report_url}")
 
-    # deep link 액션 — 본문 탭은 1위 딜로, 액션 버튼 1~2개 추가
     actions = []
     if len(hits) >= 2:
-        actions.append({"action": "view", "label": f"🛒 #2 게시물", "url": hits[1]["url"]})
+        actions.append({"action": "view", "label": "🛒 #2 쇼핑몰", "url": hits[1].get("external") or hits[1]["url"]})
     if report_url:
         actions.append({"action": "view", "label": "📋 전체 리포트", "url": report_url})
-    click = hits[0]["url"] if hits else (report_url or "https://www.ppomppu.co.kr/")
+    click = hits[0].get("external") if hits else (report_url or "https://www.algumon.com/")
     payload = json.dumps({
         "topic":    topic,
         "title":    f"{keyword['emoji']} {keyword['name']} 핫딜",
@@ -544,8 +523,8 @@ def main():
     cfg_data = load_keywords()
     keywords = cfg_data.get("keywords", [])
     settings = cfg_data.get("scan_settings", {})
-    timeout   = settings.get("request_timeout_sec", 15)
-    delay     = settings.get("delay_between_keywords_sec", 1.5)
+    timeout  = settings.get("request_timeout_sec", 15)
+    delay    = settings.get("delay_between_keywords_sec", 1.5)
     max_posts = settings.get("max_posts_per_keyword", 30)
 
     config = json.loads(CONFIG_FILE.read_text(encoding="utf-8")) if CONFIG_FILE.exists() else {}
@@ -555,7 +534,7 @@ def main():
     gh_repo    = os.environ.get("GH_REPO")    or config.get("github_repo", "")
     gh_path    = os.environ.get("GH_PATH")    or config.get("github_deals_path", "deals.html")
 
-    print(f"\n[{now.strftime('%Y-%m-%d %H:%M')}] 키워드 모니터 시작 — {len(keywords)} 키워드", flush=True)
+    print(f"\n[{now.strftime('%Y-%m-%d %H:%M')}] 알구몬 키워드 모니터 시작 — {len(keywords)} 키워드", flush=True)
 
     seen = load_seen()
     sections: list[str] = []
@@ -563,7 +542,6 @@ def main():
 
     for i, kw in enumerate(keywords):
         kid = kw["id"]
-        # 단일 검색어 OR 검색어 리스트 둘 다 지원
         queries = kw.get("search_queries") or [kw.get("search_query", "")]
         queries = [q for q in queries if q]
         excludes = [e.lower() for e in kw.get("exclude", [])]
@@ -574,51 +552,46 @@ def main():
         stale_days = kw.get("stale_days", 30)
         verify_links = kw.get("verify_links", True)
         print(f"\n[{kid}] 검색어 {queries}...", flush=True)
-        posts = fetch_search_multi(queries, timeout=timeout, delay=1.0)[:max_posts]
-        before = len(posts)
+        cards = fetch_search_multi(queries, timeout=timeout, delay=1.0)[:max_posts]
+        before = len(cards)
         if require_any:
-            posts = [p for p in posts if any(t in p["title"].lower() for t in require_any)]
-            if len(posts) != before:
-                print(f"  게시물 {before} → {len(posts)}건 (require_any 적용)", flush=True)
-                before = len(posts)
+            cards = [c for c in cards if any(t in c["title"].lower() for t in require_any)]
+            if len(cards) != before:
+                print(f"  카드 {before} → {len(cards)}건 (require_any 적용)", flush=True)
+                before = len(cards)
         if excludes:
-            posts = [p for p in posts if not any(e in p["title"].lower() for e in excludes)]
-            if len(posts) != before:
-                print(f"  게시물 → {len(posts)}건 (제외어 적용)", flush=True)
+            cards = [c for c in cards if not any(e in c["title"].lower() for e in excludes)]
+            if len(cards) != before:
+                print(f"  카드 → {len(cards)}건 (제외어 적용)", flush=True)
         if not require_any and not excludes:
-            print(f"  게시물 {len(posts)}건 수집", flush=True)
+            print(f"  카드 {len(cards)}건 수집", flush=True)
 
-        # 날짜 필터: stale_days 이상 된 건 통계에서 제외 (시장가 자동학습이 옛 가격에 끌리지 않게)
+        # 날짜 필터 (stale_days 이내)
         cutoff = now - timedelta(days=stale_days)
-        fresh = [p for p in posts if (p.get("date") is None) or (p["date"] >= cutoff)]
-        if len(fresh) != len(posts):
-            print(f"  날짜 필터 ({stale_days}일 이내): {len(posts)} → {len(fresh)}건", flush=True)
-        posts = fresh
+        fresh = [c for c in cards if c.get("date") is None or c["date"] >= cutoff]
+        if len(fresh) != len(cards):
+            print(f"  날짜 필터 ({stale_days}일 이내): {len(cards)} → {len(fresh)}건", flush=True)
+        cards = fresh
 
-        # 첫 검색어를 query 인자로 (수량 파싱의 BOX_QTY_HINT 용)
-        primary_query = queries[0] if queries else kid
-        parsed = [
-            parse_post(p, kid, primary_query, single_item=single_item, ppu_min=ppu_min, ppu_max=ppu_max)
-            for p in posts
-        ]
-        for d in parsed:
-            d["unit"] = kw.get("unit", "개")
+        # sanity 적용
+        for c in cards:
+            apply_sanity(c, single_item=single_item, ppu_min=ppu_min, ppu_max=ppu_max)
+            c["unit"] = kw.get("unit", "개")
 
-        unit_prices = [d["price_per_unit"] for d in parsed if d["price_per_unit"]]
+        unit_prices = [c["price_per_unit"] for c in cards if c.get("price_per_unit")]
         stats = stats_with_iqr(unit_prices, k=kw.get("outlier_iqr_k", 1.5))
-        print(f"  단가 파싱 {len(unit_prices)}건, outlier 제거 후 {stats['n_clean']}건", flush=True)
+        print(f"  단가 {len(unit_prices)}건, outlier 제거 후 {stats['n_clean']}건", flush=True)
 
         threshold = 0
         hits: list[dict] = []
         if stats["n_clean"] >= kw.get("min_samples", 6):
             threshold = int(stats["p25"] * kw.get("alert_pct", 80) / 100)
             print(f"  P25={stats['p25']:,} → 임계값 {threshold:,}원/{kw.get('unit','개')}", flush=True)
-            for d in parsed:
-                if d["price_per_unit"] and d["price_per_unit"] <= threshold and d["id"] not in seen:
-                    hits.append(d)
+            for c in cards:
+                if c.get("price_per_unit") and c["price_per_unit"] <= threshold and c["id"] not in seen:
+                    hits.append(c)
             print(f"  후보 핫딜 {len(hits)}건", flush=True)
 
-            # 알림 직전 살아있는지 검증 (죽은 링크는 알림 제외)
             if verify_links and hits:
                 alive: list[dict] = []
                 for d in hits:
@@ -630,28 +603,30 @@ def main():
         else:
             print(f"  샘플 부족 ({stats['n_clean']} < {kw.get('min_samples', 6)}) — 알림 보류", flush=True)
 
-        sections.append(keyword_section_html(kw, parsed, stats, threshold, hits))
+        sections.append(keyword_section_html(kw, cards, stats, threshold, hits))
 
         if hits:
             ntfy_ok = True
             if ntfy_topic:
                 ntfy_ok = send_ntfy(ntfy_topic, kw, hits, threshold, "")
+
             push_ok = True
             if send_push:
                 push_title = f"{kw['emoji']} {kw['name']} 핫딜 {len(hits)}건"
                 lines = []
                 for d in hits[:5]:
-                    if d["price_per_unit"]:
+                    if d.get("price_per_unit"):
                         age = humanize_age(d.get("date"))
+                        src = d.get("source", "")
                         age_s = f" · {age}" if age else ""
-                        lines.append(f"{d['price_per_unit']:,}원/{kw.get('unit','개')}{age_s} — {d['title'][:30]}")
+                        src_s = f" · {src}" if src else ""
+                        lines.append(f"{d['price_per_unit']:,}원/{kw.get('unit','개')}{age_s}{src_s} — {d['title'][:30]}")
                 push_body = "\n".join(lines) or "새 핫딜"
-                # deep link 액션 (PWA Web Push 도 ntfy 와 같은 패턴)
                 push_actions = []
                 if len(hits) >= 2:
-                    push_actions.append({"action": "deal2", "title": "🛒 #2", "url": hits[1]["url"]})
+                    push_actions.append({"action": "deal2", "title": "🛒 #2", "url": hits[1].get("external") or hits[1]["url"]})
                 push_actions.append({"action": "report", "title": "📋 리포트", "url": "https://nothing881122-netizen.github.io/flight-deals/deals.html"})
-                first_url = hits[0]["url"]
+                first_url = hits[0].get("external") or hits[0]["url"]
                 try:
                     ok, fail = send_push(kid, push_title, push_body, url=first_url, actions=push_actions)
                     push_ok = (ok > 0) or (ok + fail == 0)
@@ -663,7 +638,7 @@ def main():
                 seen.update(d["id"] for d in hits)
                 total_new_hits += len(hits)
             else:
-                print(f"  [WARN] 모든 알림 채널 실패 — seen 미갱신, 다음 실행에서 재시도", flush=True)
+                print(f"  [WARN] 알림 채널 실패 — seen 미갱신", flush=True)
 
         if i < len(keywords) - 1:
             time.sleep(delay)

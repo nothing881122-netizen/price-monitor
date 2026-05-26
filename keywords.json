@@ -15,9 +15,9 @@
       "exclude": ["햇반", "리챔", "비비고", "왕교자", "딤섬", "냥이", "고양이"],
       "unit": "캔",
       "alert_pct": 80,
-      "min_samples": 6,
+      "min_samples": 4,
       "outlier_iqr_k": 1.5,
-      "stale_days": 30,
+      "stale_days": 60,
       "verify_links": true,
       "default": true
     },
@@ -36,9 +36,9 @@
       ],
       "unit": "캔",
       "alert_pct": 80,
-      "min_samples": 6,
+      "min_samples": 4,
       "outlier_iqr_k": 1.5,
-      "stale_days": 30,
+      "stale_days": 60,
       "verify_links": true,
       "default": true
     },
