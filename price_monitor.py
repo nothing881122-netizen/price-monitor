@@ -15,6 +15,11 @@ import sys
 import time
 import urllib.request
 import urllib.error
+
+try:
+    from push_notify import send_push
+except ImportError:
+    send_push = None
 from datetime import datetime, date
 from html.parser import HTMLParser
 from pathlib import Path
@@ -526,6 +531,24 @@ def main() -> None:
         notified = True
         if ntfy_topic:
             notified = send_ntfy(ntfy_topic, new_alert_deals, report_url)
+
+        # PWA Web Push (병행, best-effort — 실패해도 seen 갱신 결정엔 영향 없음)
+        if send_push:
+            push_title = f"🥫 핫딜 {len(new_alert_deals)}건"
+            body_lines = []
+            for d in new_alert_deals[:5]:
+                if d.get("price_per_unit"):
+                    body_lines.append(f"[{d['grade']}] {d['product']} {d['price_per_unit']:,}원/캔")
+                else:
+                    body_lines.append(f"[{d['grade']}] {d['product']}")
+            if len(new_alert_deals) > 5:
+                body_lines.append(f"외 {len(new_alert_deals)-5}건")
+            push_body = "\n".join(body_lines)
+            try:
+                send_push("ppomppu", push_title, push_body, url=report_url)
+            except Exception as e:
+                print(f"  [WARN] web push 예외: {e}", flush=True)
+
         if notified:
             seen.update(d["id"] for d in new_alert_deals)
             save_seen(seen)

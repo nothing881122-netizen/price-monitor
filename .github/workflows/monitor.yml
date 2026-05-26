@@ -27,14 +27,20 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Install dependencies
+        run: pip install pywebpush
+
       - name: Run price monitor
         env:
-          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
-          GH_TOKEN:   ${{ secrets.GH_DEPLOY_TOKEN }}
-          GH_OWNER:   nothing881122-netizen
-          GH_REPO:    flight-deals
-          GH_PATH:    deals.html
-          FORCE_RUN:  ${{ github.event_name == 'workflow_dispatch' && '1' || '0' }}
+          NTFY_TOPIC:               ${{ secrets.NTFY_TOPIC }}
+          GH_TOKEN:                 ${{ secrets.GH_DEPLOY_TOKEN }}
+          GH_OWNER:                 nothing881122-netizen
+          GH_REPO:                  flight-deals
+          GH_PATH:                  deals.html
+          WEB_PUSH_VAPID_PRIVATE:   ${{ secrets.WEB_PUSH_VAPID_PRIVATE }}
+          WEB_PUSH_SUBSCRIPTIONS:   ${{ secrets.WEB_PUSH_SUBSCRIPTIONS }}
+          WEB_PUSH_SUBJECT:         ${{ secrets.WEB_PUSH_SUBJECT }}
+          FORCE_RUN:                ${{ github.event_name == 'workflow_dispatch' && '1' || '0' }}
         run: python price_monitor.py
 
       - name: Persist seen_ids.json
