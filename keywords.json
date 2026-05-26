@@ -17,6 +17,8 @@
       "alert_pct": 80,
       "min_samples": 6,
       "outlier_iqr_k": 1.5,
+      "stale_days": 30,
+      "verify_links": true,
       "default": true
     },
     {
@@ -30,6 +32,8 @@
       "alert_pct": 80,
       "min_samples": 6,
       "outlier_iqr_k": 1.5,
+      "stale_days": 30,
+      "verify_links": true,
       "default": true
     },
     {
@@ -46,6 +50,8 @@
       "alert_pct": 90,
       "min_samples": 3,
       "outlier_iqr_k": 1.5,
+      "stale_days": 90,
+      "verify_links": true,
       "default": true
     },
     {
@@ -62,6 +68,8 @@
       "alert_pct": 90,
       "min_samples": 3,
       "outlier_iqr_k": 1.5,
+      "stale_days": 90,
+      "verify_links": true,
       "default": true
     },
     {
@@ -78,6 +86,8 @@
       "alert_pct": 90,
       "min_samples": 3,
       "outlier_iqr_k": 1.5,
+      "stale_days": 90,
+      "verify_links": true,
       "default": true
     }
   ]

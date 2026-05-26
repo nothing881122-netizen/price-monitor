@@ -20,7 +20,7 @@ import time
 import urllib.parse
 import urllib.request
 import urllib.error
-from datetime import datetime
+from datetime import datetime, timedelta
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -97,8 +97,28 @@ class PpomppuParser(HTMLParser):
             self._buf.append(data)
 
 
+def _parse_dates_from_html(html: str) -> dict[str, datetime]:
+    """검색 결과 HTML에서 게시물 ID → 작성일시 매핑 추출."""
+    id_positions = [
+        (m.start(), m.group(1))
+        for m in re.finditer(r'baseList-title[^>]*href="view\.php\?[^"]*no=(\d+)"', html)
+    ]
+    date_re = re.compile(r'title="(\d{2})\.(\d{2})\.(\d{2})\s+(\d{2}):(\d{2}):(\d{2})"')
+    out: dict[str, datetime] = {}
+    for i, (pos, pid) in enumerate(id_positions):
+        end = id_positions[i + 1][0] if i + 1 < len(id_positions) else len(html)
+        m = date_re.search(html, pos, end)
+        if m:
+            yy, mm, dd, h, mi, s = (int(x) for x in m.groups())
+            try:
+                out[pid] = datetime(2000 + yy, mm, dd, h, mi, s)
+            except ValueError:
+                pass
+    return out
+
+
 def fetch_search(query: str, timeout: int = 15) -> list[dict]:
-    """단일 검색어로 검색 페이지를 가져와 파싱된 게시물 리스트 반환."""
+    """단일 검색어로 검색 페이지를 가져와 파싱된 게시물 리스트 반환 (date 포함)."""
     encoded = urllib.parse.quote(query.encode("euc-kr"))
     url = PPOMPPU_SEARCH_URL.format(kw=encoded)
     req = urllib.request.Request(url, headers=HEADERS)
@@ -111,6 +131,9 @@ def fetch_search(query: str, timeout: int = 15) -> list[dict]:
     html = raw.decode("euc-kr", errors="replace")
     parser = PpomppuParser()
     parser.feed(html)
+    date_map = _parse_dates_from_html(html)
+    for p in parser.posts:
+        p["date"] = date_map.get(p["id"])
     return parser.posts
 
 
@@ -193,6 +216,30 @@ DEFAULT_PPU_MIN = 200
 DEFAULT_PPU_MAX = 30_000
 
 
+def verify_alive(post_url: str, timeout: int = 8) -> bool:
+    """게시물 페이지가 실제로 살아있는지 GET으로 검증.
+    '존재하지 않' 문자열 또는 응답 < 40KB 면 죽은 페이지로 간주."""
+    req = urllib.request.Request(post_url, headers=HEADERS)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            raw = r.read()
+    except Exception as e:
+        print(f"    [DEAD?] {post_url[-30:]}: {e}", flush=True)
+        return False
+    if len(raw) < 40_000:
+        print(f"    [DEAD?] 응답 작음 ({len(raw)} bytes): {post_url[-30:]}", flush=True)
+        return False
+    try:
+        html = raw.decode("euc-kr", errors="replace")
+    except Exception:
+        return True  # 디코드 실패해도 일단 살아있다 가정
+    for marker in ("존재하지 않", "없는 게시물", "삭제된 게시물"):
+        if marker in html:
+            print(f"    [DEAD] '{marker}' 마커 검출: {post_url[-30:]}", flush=True)
+            return False
+    return True
+
+
 def parse_post(
     post: dict,
     keyword_id: str,
@@ -222,7 +269,25 @@ def parse_post(
         "total_price": total,
         "quantity":    qty,
         "price_per_unit": ppu,
+        # date 는 post에서 이미 들어있음
     }
+
+
+def humanize_age(dt: datetime | None, ref: datetime | None = None) -> str:
+    """작성일시 → '3시간 전', '2일 전' 같은 표현. None 이면 빈 문자열."""
+    if dt is None:
+        return ""
+    if ref is None:
+        ref = datetime.now()
+    delta = ref - dt
+    s = int(delta.total_seconds())
+    if s < 0:
+        return "방금"
+    if s < 3600:
+        return f"{max(1, s // 60)}분 전"
+    if s < 86400:
+        return f"{s // 3600}시간 전"
+    return f"{s // 86400}일 전"
 
 
 # ─────────────────────────────────────────────
@@ -295,8 +360,10 @@ def deal_card_html(d: dict, threshold: int) -> str:
         )
     else:
         price_line = '<span class="price-unknown">가격 파싱 불가</span>'
+    age = humanize_age(d.get("date"))
+    age_html = f'<span class="age">{age}</span>' if age else ''
     return f"""<div class="card">
-  <p class="card-title">{d['title'][:80]}</p>
+  <p class="card-title">{d['title'][:80]} {age_html}</p>
   <p class="card-price">{price_line} {badge}</p>
   <a href="{d['url']}" target="_blank" class="btn">뽐뿌 게시물 →</a>
 </div>"""
@@ -348,6 +415,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .card-price .meta{color:#8B7355;font-size:12px}
 .card-price .price-unknown{color:#8B7355;font-style:italic}
 .badge-deal{display:inline-block;background:#FAE2D4;color:#7C4530;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;margin-left:6px}
+.age{display:inline-block;color:#A89070;font-size:11px;font-weight:400;margin-left:4px}
 .btn{display:inline-block;color:#B0502C;text-decoration:none;font-size:12px;margin-top:6px}
 .footer{text-align:center;padding:24px 16px;font-size:12px;color:#B8986A}
 """
@@ -415,7 +483,9 @@ def send_ntfy(topic: str, keyword: dict, hits: list[dict], threshold: int, repor
     lines = [f"{keyword['emoji']} {keyword['name']} 핫딜 {len(hits)}건!\n"]
     for d in hits[:5]:
         if d["price_per_unit"]:
-            lines.append(f"[{d['price_per_unit']:,}원/{d['unit']}] {d['title'][:40]}")
+            age = humanize_age(d.get("date"))
+            age_s = f" · {age}" if age else ""
+            lines.append(f"[{d['price_per_unit']:,}원/{d['unit']}{age_s}] {d['title'][:40]}")
     lines.append(f"\n알림 기준: ≤ {threshold:,}원/{keyword.get('unit','개')}")
     if report_url:
         lines.append(f"리포트: {report_url}")
@@ -500,6 +570,8 @@ def main():
         single_item = kw.get("single_item", False)
         ppu_min = kw.get("ppu_min", DEFAULT_PPU_MIN)
         ppu_max = kw.get("ppu_max", DEFAULT_PPU_MAX)
+        stale_days = kw.get("stale_days", 30)
+        verify_links = kw.get("verify_links", True)
         print(f"\n[{kid}] 검색어 {queries}...", flush=True)
         posts = fetch_search_multi(queries, timeout=timeout, delay=1.0)[:max_posts]
         if excludes:
@@ -508,6 +580,13 @@ def main():
             print(f"  게시물 {before} → {len(posts)}건 (제외어 적용)", flush=True)
         else:
             print(f"  게시물 {len(posts)}건 수집", flush=True)
+
+        # 날짜 필터: stale_days 이상 된 건 통계에서 제외 (시장가 자동학습이 옛 가격에 끌리지 않게)
+        cutoff = now - timedelta(days=stale_days)
+        fresh = [p for p in posts if (p.get("date") is None) or (p["date"] >= cutoff)]
+        if len(fresh) != len(posts):
+            print(f"  날짜 필터 ({stale_days}일 이내): {len(posts)} → {len(fresh)}건", flush=True)
+        posts = fresh
 
         # 첫 검색어를 query 인자로 (수량 파싱의 BOX_QTY_HINT 용)
         primary_query = queries[0] if queries else kid
@@ -530,7 +609,17 @@ def main():
             for d in parsed:
                 if d["price_per_unit"] and d["price_per_unit"] <= threshold and d["id"] not in seen:
                     hits.append(d)
-            print(f"  새 핫딜 {len(hits)}건", flush=True)
+            print(f"  후보 핫딜 {len(hits)}건", flush=True)
+
+            # 알림 직전 살아있는지 검증 (죽은 링크는 알림 제외)
+            if verify_links and hits:
+                alive: list[dict] = []
+                for d in hits:
+                    if verify_alive(d["url"]):
+                        alive.append(d)
+                    time.sleep(0.5)
+                print(f"  링크 검증: {len(hits)} → {len(alive)}건 살아있음", flush=True)
+                hits = alive
         else:
             print(f"  샘플 부족 ({stats['n_clean']} < {kw.get('min_samples', 6)}) — 알림 보류", flush=True)
 
@@ -546,7 +635,9 @@ def main():
                 lines = []
                 for d in hits[:5]:
                     if d["price_per_unit"]:
-                        lines.append(f"{d['price_per_unit']:,}원/{kw.get('unit','개')} — {d['title'][:35]}")
+                        age = humanize_age(d.get("date"))
+                        age_s = f" · {age}" if age else ""
+                        lines.append(f"{d['price_per_unit']:,}원/{kw.get('unit','개')}{age_s} — {d['title'][:30]}")
                 push_body = "\n".join(lines) or "새 핫딜"
                 # deep link 액션 (PWA Web Push 도 ntfy 와 같은 패턴)
                 push_actions = []
