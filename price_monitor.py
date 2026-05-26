@@ -567,6 +567,7 @@ def main():
         queries = kw.get("search_queries") or [kw.get("search_query", "")]
         queries = [q for q in queries if q]
         excludes = [e.lower() for e in kw.get("exclude", [])]
+        require_any = [t.lower() for t in kw.get("require_any", [])]
         single_item = kw.get("single_item", False)
         ppu_min = kw.get("ppu_min", DEFAULT_PPU_MIN)
         ppu_max = kw.get("ppu_max", DEFAULT_PPU_MAX)
@@ -574,11 +575,17 @@ def main():
         verify_links = kw.get("verify_links", True)
         print(f"\n[{kid}] 검색어 {queries}...", flush=True)
         posts = fetch_search_multi(queries, timeout=timeout, delay=1.0)[:max_posts]
+        before = len(posts)
+        if require_any:
+            posts = [p for p in posts if any(t in p["title"].lower() for t in require_any)]
+            if len(posts) != before:
+                print(f"  게시물 {before} → {len(posts)}건 (require_any 적용)", flush=True)
+                before = len(posts)
         if excludes:
-            before = len(posts)
             posts = [p for p in posts if not any(e in p["title"].lower() for e in excludes)]
-            print(f"  게시물 {before} → {len(posts)}건 (제외어 적용)", flush=True)
-        else:
+            if len(posts) != before:
+                print(f"  게시물 → {len(posts)}건 (제외어 적용)", flush=True)
+        if not require_any and not excludes:
             print(f"  게시물 {len(posts)}건 수집", flush=True)
 
         # 날짜 필터: stale_days 이상 된 건 통계에서 제외 (시장가 자동학습이 옛 가격에 끌리지 않게)
