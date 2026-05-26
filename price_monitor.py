@@ -419,10 +419,14 @@ def send_ntfy(topic: str, keyword: dict, hits: list[dict], threshold: int, repor
     lines.append(f"\n알림 기준: ≤ {threshold:,}원/{keyword.get('unit','개')}")
     if report_url:
         lines.append(f"리포트: {report_url}")
+
+    # deep link 액션 — 본문 탭은 1위 딜로, 액션 버튼 1~2개 추가
     actions = []
+    if len(hits) >= 2:
+        actions.append({"action": "view", "label": f"🛒 #2 게시물", "url": hits[1]["url"]})
     if report_url:
-        actions.append({"action": "view", "label": "리포트 보기", "url": report_url})
-    click = report_url if report_url else (hits[0]["url"] if hits else "https://www.ppomppu.co.kr/")
+        actions.append({"action": "view", "label": "📋 전체 리포트", "url": report_url})
+    click = hits[0]["url"] if hits else (report_url or "https://www.ppomppu.co.kr/")
     payload = json.dumps({
         "topic":    topic,
         "title":    f"{keyword['emoji']} {keyword['name']} 핫딜",
@@ -544,8 +548,14 @@ def main():
                     if d["price_per_unit"]:
                         lines.append(f"{d['price_per_unit']:,}원/{kw.get('unit','개')} — {d['title'][:35]}")
                 push_body = "\n".join(lines) or "새 핫딜"
+                # deep link 액션 (PWA Web Push 도 ntfy 와 같은 패턴)
+                push_actions = []
+                if len(hits) >= 2:
+                    push_actions.append({"action": "deal2", "title": "🛒 #2", "url": hits[1]["url"]})
+                push_actions.append({"action": "report", "title": "📋 리포트", "url": "https://nothing881122-netizen.github.io/flight-deals/deals.html"})
+                first_url = hits[0]["url"]
                 try:
-                    ok, fail = send_push(kid, push_title, push_body, url="")
+                    ok, fail = send_push(kid, push_title, push_body, url=first_url, actions=push_actions)
                     push_ok = (ok > 0) or (ok + fail == 0)
                 except Exception as e:
                     print(f"  [WARN] push 예외: {e}", flush=True)
