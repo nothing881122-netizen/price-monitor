@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "scan_settings": {
+    "search_pages": 1,
+    "max_posts_per_keyword": 30,
+    "request_timeout_sec": 15,
+    "delay_between_keywords_sec": 1.5
+  },
+  "keywords": [
+    {
+      "id": "spam",
+      "emoji": "🥫",
+      "name": "스팸",
+      "description": "스팸 캔당 평균보다 저렴",
+      "search_query": "스팸",
+      "exclude": ["햇반"],
+      "unit": "캔",
+      "alert_pct": 80,
+      "min_samples": 6,
+      "outlier_iqr_k": 1.5,
+      "default": true
+    },
+    {
+      "id": "tuna",
+      "emoji": "🐟",
+      "name": "참치",
+      "description": "참치 캔당 평균보다 저렴",
+      "search_query": "참치",
+      "exclude": ["고양이", "사료", "간식", "참치 외", "오뚜기밥", "주먹밥"],
+      "unit": "캔",
+      "alert_pct": 80,
+      "min_samples": 6,
+      "outlier_iqr_k": 1.5,
+      "default": true
+    }
+  ]
+}
