@@ -230,21 +230,41 @@
     {
       "id": "buds4pro",
       "emoji": "🎧",
-      "name": "갤럭시 버즈4 프로",
-      "description": "역대 최저가 알림",
-      "search_queries": ["버즈4 프로", "버즈4프로", "Buds4 Pro", "Galaxy Buds4 Pro", "갤럭시 버즈4 프로"],
-      "require_any": ["버즈4", "buds4"],
-      "exclude": ["버즈3", "buds3", "버즈2", "buds2", "버즈 라이브", "버즈 fe"],
+      "name": "갤럭시 버즈4",
+      "description": "프로 / 일반",
       "unit": "개",
-      "single_item": true,
-      "ppu_min": 150000,
-      "ppu_max": 500000,
-      "alert_pct": 90,
-      "min_samples": 3,
-      "outlier_iqr_k": 1.5,
       "stale_days": 180,
       "verify_links": true,
-      "default": true
+      "exclude": ["케이스", "스킨", "스트랩", "버즈3", "buds3", "버즈2", "buds2", "버즈 라이브", "버즈 fe", "버즈 라이트"],
+      "default": true,
+      "sub_brands": [
+        {
+          "id": "buds4_pro",
+          "name": "버즈4 프로",
+          "search_queries": ["버즈4 프로", "버즈4프로", "Buds4 Pro", "Galaxy Buds4 Pro", "갤럭시 버즈4 프로"],
+          "require_any": ["버즈4", "buds4"],
+          "exclude": ["일반", "R540", "버즈3", "buds3"],
+          "single_item": true,
+          "ppu_min": 150000,
+          "ppu_max": 500000,
+          "alert_pct": 90,
+          "min_samples": 3,
+          "outlier_iqr_k": 1.5
+        },
+        {
+          "id": "buds4_normal",
+          "name": "버즈4 일반",
+          "search_queries": ["갤럭시 버즈4", "Galaxy Buds4", "버즈4 블랙", "버즈4 R540"],
+          "require_any": ["버즈4", "buds4"],
+          "exclude": ["프로", "pro ", "pro,", "pro)", "프로,", "프로)", "R640"],
+          "single_item": true,
+          "ppu_min": 80000,
+          "ppu_max": 350000,
+          "alert_pct": 90,
+          "min_samples": 3,
+          "outlier_iqr_k": 1.5
+        }
+      ]
     },
     {
       "id": "airpods",
