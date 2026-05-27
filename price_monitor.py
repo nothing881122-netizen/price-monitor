@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-알구몬 키워드 기반 핫딜 모니터 (v3)
+알구몬 기반 키워드 핫딜 모니터
 
-- keywords.json 의 각 키워드를 algumon.com 검색에 넣어 카드 수집
-- 알구몬이 이미 계산한 단가(N x M원 표기)를 활용 → 우리 수량 파싱 불필요
-- 캔당/개당 단가 통계(IQR outlier 제거 → 25% 백분위) → 임계값 산출
-- 외부 기준가 의존 없음, 알구몬이 뽐뿌·클리앙·어미새 등 통합 수집
+- keywords.json 의 각 키워드를 algumon.com 검색에 넣어 deal 수집
+  (JSON endpoint __data.json 사용 — HTML 보다 3배+ 데이터, 만료 여부 포함)
+- 알구몬이 이미 계산한 단가(N x M원 표기)를 활용 → 자체 수량 파싱 불필요
+- 단가 통계(IQR outlier 제거 → P25)에서 알림 임계값 자동 산출
+- 외부 기준가 의존 없음 — 시장 변동에 자동 적응
+- 핫딜 발견 시 PWA Web Push 알림 + GitHub Pages 리포트 갱신
 """
 
 from __future__ import annotations
@@ -21,7 +23,6 @@ import urllib.parse
 import urllib.request
 import urllib.error
 from datetime import datetime, timedelta
-from html.parser import HTMLParser
 from pathlib import Path
 
 try:
@@ -29,15 +30,20 @@ try:
 except ImportError:
     send_push = None
 
-ROOT = Path(__file__).parent
+# ─────────────────────────────────────────────
+# 경로 / 상수
+# ─────────────────────────────────────────────
+
+ROOT          = Path(__file__).parent
 KEYWORDS_FILE = ROOT / "keywords.json"
 SEEN_FILE     = ROOT / "seen_ids.json"
 REPORT_FILE   = ROOT / "deals.html"
 CONFIG_FILE   = ROOT / "config.json"
 
-ALGUMON_SEARCH_URL = "https://www.algumon.com/n/deal?keyword={kw}"
-ALGUMON_DATA_URL   = "https://www.algumon.com/n/deal/__data.json?keyword={kw}"
-ALGUMON_DEAL_URL   = "https://www.algumon.com/n/deal/{id}"
+ALGUMON_DATA_URL = "https://www.algumon.com/n/deal/__data.json?keyword={kw}"
+ALGUMON_DEAL_URL = "https://www.algumon.com/n/deal/{id}"
+REPORT_BASE_URL  = "https://nothing881122-netizen.github.io/flight-deals/deals.html"
+
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -49,121 +55,28 @@ HEADERS = {
     "Referer": "https://www.algumon.com/",
 }
 
+# 단가 sanity 기본 범위 (식품 기준; keywords.json 에서 키워드별 override)
+DEFAULT_PPU_MIN = 200
+DEFAULT_PPU_MAX = 30_000
+
+# "18 x 2,607원" 식 단가 표기 — 알구몬이 perPriceText 에 넣어줌
+_PERPRICE_RE = re.compile(r"(\d{1,4})\s*[x×]\s*([\d,]+)\s*원")
+_PRICE_RE    = re.compile(r"([\d,]+)\s*원")
+
+
 # ─────────────────────────────────────────────
-# 알구몬 카드 파서 — 정규식 기반 (Svelte SSR HTML)
+# 알구몬 JSON endpoint 파서
 # ─────────────────────────────────────────────
-
-# 알구몬은 카드 컨테이너로 deal-feed-card OR deal-row 두 클래스 사용 (UI 변종)
-# 둘 다 매치해야 전체 카드 잡힘
-_CARD_SPLIT_RE = re.compile(r'class="(?:deal-feed-card|deal-row)[^"]*"', re.IGNORECASE)
-# 카드 내 정보 추출 패턴
-_DEAL_ID_RE     = re.compile(r'/n/deal/(\d+)')
-_REDIRECT_RE    = re.compile(r'href="(https?://(?:www\.)?algumon\.com/l/d/\d+\?[^"]+)"')
-_TITLE_ALT_RE   = re.compile(r'<img[^>]*alt="([^"]+)"[^>]*class="w-full[^>]*"', re.IGNORECASE)
-# 가격 텍스트: "46,941원 (18 x 2,607원)" 또는 "46,941원 (배송 무료)" 형태 등
-# 단가 표기 "N x M원" 우선 추출, 없으면 총가만
-_UNIT_RE        = re.compile(r'(\d{1,4})\s*[x×]\s*([\d,]+)\s*원')
-_TOTAL_RE       = re.compile(r'([\d,]+)\s*원')
-# 상대 시간 — "4시간 전", "2일 전" 등
-_AGE_RE         = re.compile(r'(\d+)\s*(분|시간|일|주|개월|년)\s*전')
-# 출처 — 뽐뿌, 클리앙, 어미새 등 사이트명. 보통 카드 헤더에 표시
-_SOURCE_NAMES   = ["뽐뿌", "클리앙", "어미새", "쿨엔조이", "루리웹", "fmkorea", "에펨코리아",
-                   "퀘이사존", "도탁스", "디시", "와이고수", "보드나라"]
-
-
-def _strip_tags(html: str) -> str:
-    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html)).strip()
-
-
-def _parse_card(card_html: str) -> dict | None:
-    """단일 카드 HTML에서 정보 추출."""
-    m_id = _DEAL_ID_RE.search(card_html)
-    if not m_id:
-        return None
-    deal_id = m_id.group(1)
-
-    # 텍스트 일부 (앞 500자 정도)
-    text = _strip_tags(card_html)
-
-    # 제목 — img alt 우선
-    m_title = _TITLE_ALT_RE.search(card_html)
-    title = m_title.group(1).strip() if m_title else ""
-    if not title:
-        # fallback — 텍스트 첫 80자
-        title = text[:80]
-
-    # 외부 redirect URL (쇼핑몰로 이어짐, v=&t= 토큰 포함)
-    m_redirect = _REDIRECT_RE.search(card_html)
-    external_url = m_redirect.group(1).replace("&amp;", "&") if m_redirect else ""
-    # 알구몬 상세 페이지 URL (만료 없음)
-    detail_url = ALGUMON_DEAL_URL.format(id=deal_id)
-
-    # 단가: "18 x 2,607원" — 알구몬이 직접 계산
-    m_unit = _UNIT_RE.search(text)
-    if m_unit:
-        qty = int(m_unit.group(1))
-        ppu = int(m_unit.group(2).replace(",", ""))
-    else:
-        qty = None
-        ppu = None
-
-    # 총가
-    prices = [int(x.replace(",", "")) for x in _TOTAL_RE.findall(text)]
-    prices = [p for p in prices if 500 <= p <= 5_000_000]
-    total_price = prices[0] if prices else None  # 첫 큰 가격이 총가
-
-    # 시간 — "4시간 전" 등
-    m_age = _AGE_RE.search(text)
-    age_text = m_age.group(0) if m_age else ""
-    age_dt = _age_to_datetime(m_age) if m_age else None
-
-    # 출처
-    source = ""
-    for s in _SOURCE_NAMES:
-        if s in text:
-            source = s
-            break
-
-    return {
-        "id":          deal_id,
-        "title":       title,
-        "url":         detail_url,
-        "external":    external_url,
-        "source":      source,
-        "total_price": total_price,
-        "quantity":    qty,
-        "price_per_unit": ppu,
-        "age_text":    age_text,
-        "date":        age_dt,
-    }
-
-
-def _age_to_datetime(m: re.Match) -> datetime:
-    n = int(m.group(1))
-    unit = m.group(2)
-    now = datetime.now()
-    delta = {
-        "분":   timedelta(minutes=n),
-        "시간": timedelta(hours=n),
-        "일":   timedelta(days=n),
-        "주":   timedelta(weeks=n),
-        "개월": timedelta(days=30 * n),
-        "년":   timedelta(days=365 * n),
-    }[unit]
-    return now - delta
-
 
 def _resolve_ref(idx, pool: list, _stack: set | None = None):
-    """SvelteKit 참조 풀기. idx 가 int면 pool[idx] 를 재귀 해석. 순환 방지."""
-    if _stack is None:
-        _stack = set()
+    """SvelteKit 참조(int 인덱스) 풀기 — 재귀 + 순환 방지."""
     if not isinstance(idx, int):
         return idx
-    if idx in _stack:
+    if _stack is None:
+        _stack = set()
+    if idx in _stack or idx < 0 or idx >= len(pool):
         return None
     _stack = _stack | {idx}
-    if idx < 0 or idx >= len(pool):
-        return None
     val = pool[idx]
     if isinstance(val, dict):
         return {k: _resolve_ref(v, pool, _stack) for k, v in val.items()}
@@ -172,26 +85,31 @@ def _resolve_ref(idx, pool: list, _stack: set | None = None):
     return val
 
 
-_PERPRICE_RE = re.compile(r'(\d{1,4})\s*[x×]\s*([\d,]+)\s*원')
+def _parse_iso_date(s: str | None) -> datetime | None:
+    """알구몬 createdAt ISO 문자열 → datetime."""
+    if not isinstance(s, str):
+        return None
+    try:
+        iso = s.rstrip("Z").split(".")[0]  # "...Z" 또는 ".sss" 제거
+        return datetime.fromisoformat(iso)
+    except Exception:
+        return None
 
 
-def _parse_deal_object(deal: dict) -> dict | None:
-    """SvelteKit 참조가 풀린 deal dict 에서 표준 카드 정보 추출."""
+def _build_deal(deal: dict) -> dict | None:
+    """알구몬 deal dict(참조 풀린 상태) → 표준 핫딜 항목."""
     deal_id = deal.get("id")
     if deal_id is None:
         return None
-    deal_id = str(deal_id)
     title = (deal.get("title") or "").strip()
     if not title:
         return None
 
-    # 가격 — price 필드 또는 perPriceText 에서 추출
-    price_text  = str(deal.get("price") or "")
-    per_text    = str(deal.get("perPriceText") or "")
-    # 총가
-    total_match = re.search(r'([\d,]+)\s*원', price_text)
-    total_price = int(total_match.group(1).replace(",", "")) if total_match else None
-    # 단가 "(N x M원)" — perPriceText 우선
+    # 가격 / 단가
+    price_text = str(deal.get("price") or "")
+    per_text   = str(deal.get("perPriceText") or "")
+    m_total = _PRICE_RE.search(price_text)
+    total_price = int(m_total.group(1).replace(",", "")) if m_total else None
     qty, ppu = None, None
     for src in (per_text, price_text):
         m = _PERPRICE_RE.search(src)
@@ -200,45 +118,23 @@ def _parse_deal_object(deal: dict) -> dict | None:
             ppu = int(m.group(2).replace(",", ""))
             break
 
-    # 출처 / 쇼핑몰
-    source     = (deal.get("siteName") or "").strip()
-    store_name = (deal.get("storeName") or "").strip()
-
-    # URL — original 우선, cloak 없음
-    original_url = (deal.get("originalUrl") or "").strip()
-    detail_url   = ALGUMON_DEAL_URL.format(id=deal_id)
-
-    # 만료
-    ended = bool(deal.get("ended", False))
-
-    # 날짜 — createdAt 은 ISO 형식
-    age_dt = None
-    created = deal.get("createdAt")
-    if isinstance(created, str):
-        try:
-            # "2026-05-27T01:23:45.678Z" 또는 "...+09:00" 등
-            iso = created.rstrip("Z").split(".")[0]
-            age_dt = datetime.fromisoformat(iso)
-        except Exception:
-            age_dt = None
-
     return {
-        "id":          deal_id,
-        "title":       title,
-        "url":         detail_url,
-        "external":    original_url or detail_url,
-        "source":      source,
-        "store":       store_name,
-        "total_price": total_price,
-        "quantity":    qty,
+        "id":             str(deal_id),
+        "title":          title,
+        "url":            ALGUMON_DEAL_URL.format(id=deal_id),
+        "external":       (deal.get("originalUrl") or "").strip() or ALGUMON_DEAL_URL.format(id=deal_id),
+        "source":         (deal.get("siteName")  or "").strip(),  # 뽐뿌/클리앙 등
+        "store":          (deal.get("storeName") or "").strip(),  # 쇼핑몰 (CJ더마켓 등)
+        "total_price":    total_price,
+        "quantity":       qty,
         "price_per_unit": ppu,
-        "date":        age_dt,
-        "ended":       ended,
+        "date":           _parse_iso_date(deal.get("createdAt")),
+        "ended":          bool(deal.get("ended", False)),
     }
 
 
 def fetch_search(query: str, timeout: int = 15) -> list[dict]:
-    """알구몬 JSON endpoint에서 검색 결과 추출 (HTML 보다 더 많은 deal + 만료 여부 포함)."""
+    """알구몬 JSON endpoint 에서 한 키워드 검색 결과 가져오기."""
     url = ALGUMON_DATA_URL.format(kw=urllib.parse.quote(query.encode("utf-8")))
     req = urllib.request.Request(url, headers={**HEADERS, "Accept": "application/json"})
     try:
@@ -248,7 +144,6 @@ def fetch_search(query: str, timeout: int = 15) -> list[dict]:
         print(f"  [ERROR] '{query}' 검색 실패: {e}", flush=True)
         return []
 
-    # nodes[1].data 가 deal 풀
     try:
         pool = data["nodes"][1]["data"]
     except (KeyError, IndexError, TypeError):
@@ -256,38 +151,33 @@ def fetch_search(query: str, timeout: int = 15) -> list[dict]:
     if not isinstance(pool, list):
         return []
 
-    cards: list[dict] = []
+    deals: list[dict] = []
     seen_ids: set[str] = set()
     for item in pool:
-        # deal 객체 식별: storeName + price + title 필드를 가짐
         if not isinstance(item, dict):
             continue
         if not all(k in item for k in ("storeName", "price", "title")):
             continue
-        resolved = _resolve_ref(item, pool) if any(isinstance(v, int) for v in item.values()) else item
-        # 위 _resolve_ref 가 item dict 자체에 동작 안 함 (값들이 int 인덱스라는 가정)
-        # 다시: item의 각 필드 값(int 인덱스)을 풀어줌
-        deal: dict = {}
-        for k, v in item.items():
-            deal[k] = _resolve_ref(v, pool) if isinstance(v, int) else v
-        info = _parse_deal_object(deal)
+        # 값이 int 인덱스면 pool 에서 풀어서 실제 값으로
+        resolved = {k: (_resolve_ref(v, pool) if isinstance(v, int) else v) for k, v in item.items()}
+        info = _build_deal(resolved)
         if info and info["id"] not in seen_ids:
             seen_ids.add(info["id"])
-            cards.append(info)
-    return cards
+            deals.append(info)
+    return deals
 
 
 def fetch_search_multi(queries: list[str], timeout: int = 15, delay: float = 1.0) -> list[dict]:
-    """여러 검색어로 결과 합치기 + ID 중복 제거."""
-    seen_ids: set = set()
+    """여러 검색어 결과 합치기 + ID 중복 제거 (한·영 혼용 키워드용)."""
+    seen_ids: set[str] = set()
     merged: list[dict] = []
     for i, q in enumerate(queries):
         if i > 0:
             time.sleep(delay)
-        for c in fetch_search(q, timeout=timeout):
-            if c["id"] not in seen_ids:
-                seen_ids.add(c["id"])
-                merged.append(c)
+        for d in fetch_search(q, timeout=timeout):
+            if d["id"] not in seen_ids:
+                seen_ids.add(d["id"])
+                merged.append(d)
     return merged
 
 
@@ -295,33 +185,32 @@ def fetch_search_multi(queries: list[str], timeout: int = 15, delay: float = 1.0
 # 통계 — IQR outlier 제거 + 백분위
 # ─────────────────────────────────────────────
 
-def quantile(sorted_values: list[float], q: float) -> float:
+def _quantile(sorted_values: list[float], q: float) -> float:
     if not sorted_values:
         return 0.0
     n = len(sorted_values)
     pos = q * (n - 1)
     lo, hi = int(pos), min(int(pos) + 1, n - 1)
-    frac = pos - lo
-    return sorted_values[lo] * (1 - frac) + sorted_values[hi] * frac
+    return sorted_values[lo] * (1 - (pos - lo)) + sorted_values[hi] * (pos - lo)
 
 
-def stats_with_iqr(unit_prices: list[int], k: float = 1.5) -> dict:
+def compute_stats(unit_prices: list[int], iqr_k: float = 1.5) -> dict:
+    """단가 리스트 → IQR outlier 제거 후 P25/중간값/최저 + 표본 수."""
     if len(unit_prices) < 4:
         clean = sorted(unit_prices)
     else:
         s = sorted(unit_prices)
-        q1 = quantile(s, 0.25)
-        q3 = quantile(s, 0.75)
+        q1 = _quantile(s, 0.25)
+        q3 = _quantile(s, 0.75)
         iqr = q3 - q1
-        lo  = q1 - k * iqr
-        hi  = q3 + k * iqr
-        clean = [v for v in s if lo <= v <= hi]
+        clean = [v for v in s if (q1 - iqr_k * iqr) <= v <= (q3 + iqr_k * iqr)]
     if not clean:
-        return {"clean": [], "median": 0, "p25": 0, "min": 0, "n_raw": len(unit_prices), "n_clean": 0}
+        return {"clean": [], "median": 0, "p25": 0, "min": 0,
+                "n_raw": len(unit_prices), "n_clean": 0}
     return {
         "clean":   clean,
         "median":  int(statistics.median(clean)),
-        "p25":     int(quantile(clean, 0.25)),
+        "p25":     int(_quantile(clean, 0.25)),
         "min":     int(min(clean)),
         "n_raw":   len(unit_prices),
         "n_clean": len(clean),
@@ -329,29 +218,24 @@ def stats_with_iqr(unit_prices: list[int], k: float = 1.5) -> dict:
 
 
 # ─────────────────────────────────────────────
-# 단가 sanity (식품 기본; 키워드별 override)
+# 핫딜 후처리 (sanity / 시간 표시)
 # ─────────────────────────────────────────────
 
-DEFAULT_PPU_MIN = 200
-DEFAULT_PPU_MAX = 30_000
-
-
-def apply_sanity(card: dict, *, single_item: bool, ppu_min: int, ppu_max: int) -> dict:
-    """single_item=True 이면 수량 무시, 총가를 단가로. sanity 범위 밖이면 ppu=None."""
+def apply_sanity(deal: dict, *, single_item: bool, ppu_min: int, ppu_max: int) -> None:
+    """단일 상품 처리 + 단가 sanity 범위. 비현실적이면 ppu=None 로 통계 제외."""
     if single_item:
-        card["quantity"] = 1
-        card["price_per_unit"] = card.get("total_price")
-    ppu = card.get("price_per_unit")
+        deal["quantity"] = 1
+        deal["price_per_unit"] = deal.get("total_price")
+    ppu = deal.get("price_per_unit")
     if ppu is not None and not (ppu_min <= ppu <= ppu_max):
-        card["price_per_unit"] = None
-    return card
+        deal["price_per_unit"] = None
 
 
 def humanize_age(dt: datetime | None, ref: datetime | None = None) -> str:
+    """datetime → '3시간 전' / '2일 전' 같은 표현."""
     if dt is None:
         return ""
-    if ref is None:
-        ref = datetime.now()
+    ref = ref or datetime.now()
     s = int((ref - dt).total_seconds())
     if s < 0:
         return "방금"
@@ -363,14 +247,16 @@ def humanize_age(dt: datetime | None, ref: datetime | None = None) -> str:
 
 
 # ─────────────────────────────────────────────
-# 링크 검증 (알구몬 상세 페이지)
+# 만료 링크 추가 검증 (algumon ended 만으론 놓치는 경우 보완)
 # ─────────────────────────────────────────────
 
+_DEAD_MARKERS = ("존재하지 않", "찾을 수 없", "삭제된", "Not Found")
+
+
 def verify_alive(deal_url: str, timeout: int = 8) -> bool:
-    """알구몬 상세 페이지가 살아있는지 GET. '존재하지 않' 마커 또는 응답 너무 작으면 False."""
-    req = urllib.request.Request(deal_url, headers=HEADERS)
+    """알구몬 상세 페이지 살아있는지 GET. 응답 < 20KB 또는 dead marker → False."""
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
+        with urllib.request.urlopen(urllib.request.Request(deal_url, headers=HEADERS), timeout=timeout) as r:
             raw = r.read()
     except Exception as e:
         print(f"    [DEAD?] {deal_url[-30:]}: {e}", flush=True)
@@ -382,58 +268,57 @@ def verify_alive(deal_url: str, timeout: int = 8) -> bool:
         html = raw.decode("utf-8", errors="replace")
     except Exception:
         return True
-    for marker in ("존재하지 않", "찾을 수 없", "삭제된", "Not Found"):
+    for marker in _DEAD_MARKERS:
         if marker in html:
-            print(f"    [DEAD] '{marker}' 마커 검출", flush=True)
+            print(f"    [DEAD] '{marker}' 마커", flush=True)
             return False
     return True
 
 
 # ─────────────────────────────────────────────
-# 중복 방지
+# seen_ids — 알림 중복 방지
 # ─────────────────────────────────────────────
 
 def load_seen() -> set:
-    if SEEN_FILE.exists():
-        try:
-            return set(json.loads(SEEN_FILE.read_text(encoding="utf-8")))
-        except json.JSONDecodeError:
-            return set()
-    return set()
+    if not SEEN_FILE.exists():
+        return set()
+    try:
+        return set(json.loads(SEEN_FILE.read_text(encoding="utf-8")))
+    except json.JSONDecodeError:
+        return set()
 
 
 def save_seen(seen: set) -> None:
-    ids = sorted(seen)[-2000:]
-    SEEN_FILE.write_text(json.dumps(ids), encoding="utf-8")
+    SEEN_FILE.write_text(json.dumps(sorted(seen)[-2000:]), encoding="utf-8")
 
 
 # ─────────────────────────────────────────────
 # HTML 리포트
 # ─────────────────────────────────────────────
 
-def deal_card_html(d: dict, threshold: int) -> str:
+def _deal_card(deal: dict, threshold: int) -> str:
     badge = ""
-    if d.get("price_per_unit") and threshold and d["price_per_unit"] <= threshold:
+    ppu = deal.get("price_per_unit")
+    if ppu and threshold and ppu <= threshold:
         badge = '<span class="badge-deal">🔥 알림 기준 이하</span>'
-    if d.get("price_per_unit"):
-        unit = d.get("unit", "개")
-        qty = d.get("quantity") or 1
-        total = d.get("total_price") or 0
+    if ppu:
+        unit = deal.get("unit", "개")
+        qty = deal.get("quantity") or 1
+        total = deal.get("total_price") or 0
         price_line = (
-            f'<span class="price">{d["price_per_unit"]:,}원/{unit}</span> '
+            f'<span class="price">{ppu:,}원/{unit}</span> '
             f'<span class="meta">(총 {total:,}원 / {qty}{unit})</span>'
         )
     else:
         price_line = '<span class="price-unknown">가격 파싱 불가</span>'
-    age = humanize_age(d.get("date"))
-    age_html = f'<span class="age">{age}</span>' if age else ''
-    src = d.get("source", "")
-    src_html = f'<span class="src">📍 {src}</span>' if src else ''
-    # 외부 redirect 우선, 없으면 알구몬 상세
-    primary = d.get("external") or d.get("url")
-    detail  = d.get("url")
+    age = humanize_age(deal.get("date"))
+    age_html = f'<span class="age">{age}</span>' if age else ""
+    src = deal.get("source") or ""
+    src_html = f'<span class="src">📍 {src}</span>' if src else ""
+    primary = deal.get("external") or deal.get("url")
+    detail  = deal.get("url")
     return f"""<div class="card">
-  <p class="card-title">{d['title'][:80]} {age_html} {src_html}</p>
+  <p class="card-title">{deal['title'][:80]} {age_html} {src_html}</p>
   <p class="card-price">{price_line} {badge}</p>
   <div class="card-actions">
     <a href="{primary}" target="_blank" class="btn btn-primary">🛒 쇼핑몰로</a>
@@ -442,69 +327,63 @@ def deal_card_html(d: dict, threshold: int) -> str:
 </div>"""
 
 
-def keyword_section_html(kw: dict, parsed: list[dict], stats: dict, threshold: int, hits: list[dict]) -> str:
-    if stats["n_clean"] < kw.get("min_samples", 6):
+def _keyword_section(kw: dict, deals: list[dict], stats: dict, threshold: int, hits: list[dict]) -> str:
+    min_samples = kw.get("min_samples", 6)
+    unit = kw.get("unit", "개")
+    if stats["n_clean"] < min_samples:
         body = f'<p class="note">샘플 부족 ({stats["n_clean"]}건) — 통계 산출 보류</p>'
     else:
-        body  = f'<p class="stats">P25 {stats["p25"]:,}원 · 중간값 {stats["median"]:,}원 · 최저 {stats["min"]:,}원 · 샘플 {stats["n_clean"]}/{stats["n_raw"]}건</p>'
-        body += f'<p class="threshold">알림 기준: <b>{threshold:,}원/{kw.get("unit","개")} 이하</b> (P25의 {kw.get("alert_pct",80)}%)</p>'
+        body  = (f'<p class="stats">P25 {stats["p25"]:,}원 · 중간값 {stats["median"]:,}원 · '
+                 f'최저 {stats["min"]:,}원 · 샘플 {stats["n_clean"]}/{stats["n_raw"]}건</p>')
+        body += (f'<p class="threshold">알림 기준: <b>{threshold:,}원/{unit} 이하</b> '
+                 f'(P25의 {kw.get("alert_pct", 80)}%)</p>')
         if hits:
             body += f'<h4>🔥 기준 이하 ({len(hits)}건)</h4>'
-            body += "".join(deal_card_html(d, threshold) for d in hits)
+            body += "".join(_deal_card(d, threshold) for d in hits)
         else:
             body += '<p class="note">현재 기준 이하 게시물 없음</p>'
-        top = [p for p in parsed if p.get("price_per_unit")][:5]
+        top = [d for d in deals if d.get("price_per_unit")][:5]
         if top:
             body += '<h4>최근 게시물</h4>'
-            for d in top:
-                body += deal_card_html(d, threshold)
+            body += "".join(_deal_card(d, threshold) for d in top)
     return f"""<section class="keyword" id="kw-{kw['id']}">
   <h2>{kw['emoji']} {kw['name']}</h2>
-  <p class="kw-desc">{kw.get('description','')}</p>
+  <p class="kw-desc">{kw.get('description', '')}</p>
   {body}
 </section>"""
 
 
-def reference_summary_html(rows: list[dict]) -> str:
-    """헤더 아래 종합 기준가 표 — 모든 키워드의 P25 / 임계값 한 눈에."""
+def _summary_table(rows: list[dict]) -> str:
+    """헤더 아래 종합 기준가 표."""
     if not rows:
         return ""
     tr_html = ""
     for r in rows:
-        if r["n_clean"] >= r.get("min_samples", 6):
-            p25  = f'{r["p25"]:,}원'
-            thr  = f'{r["threshold"]:,}원'
-            note = f'샘플 {r["n_clean"]}건'
+        min_samples = r.get("min_samples", 6)
+        if r["n_clean"] >= min_samples:
+            p25_s  = f'{r["p25"]:,}원'
+            thr_s  = f'{r["threshold"]:,}원'
+            note_s = f'샘플 {r["n_clean"]}건'
         else:
-            p25  = "—"
-            thr  = "—"
-            note = f'<span class="ref-pending">샘플 {r["n_clean"]}/{r.get("min_samples",6)} 부족</span>'
-        anchor = f'#kw-{r["id"]}'
+            p25_s = thr_s = "—"
+            note_s = f'<span class="ref-pending">샘플 {r["n_clean"]}/{min_samples} 부족</span>'
         tr_html += f"""<tr>
-  <td><a href="{anchor}">{r['emoji']} {r['name']}</a></td>
-  <td class="ref-num">{p25}</td>
-  <td class="ref-num ref-thr">{thr}</td>
-  <td class="ref-note">{note}</td>
+  <td><a href="#kw-{r['id']}">{r['emoji']} {r['name']}</a></td>
+  <td class="ref-num">{p25_s}</td>
+  <td class="ref-num ref-thr">{thr_s}</td>
+  <td class="ref-note">{note_s}</td>
 </tr>"""
     return f"""<section class="ref-section">
   <h2 class="ref-title">📊 기준가 종합 (자체 산출)</h2>
   <p class="ref-source">알구몬 검색 결과를 자체 분석한 값입니다. pricewagon 등 외부 기준가 사용 안 함 — 시장 변동에 자동 적응.</p>
   <table class="ref-table">
-    <thead>
-      <tr>
-        <th>카테고리</th>
-        <th>P25 (시장 25% 구간)</th>
-        <th>알림 기준</th>
-        <th>상태</th>
-      </tr>
-    </thead>
+    <thead><tr><th>카테고리</th><th>P25 (시장 25%)</th><th>알림 기준</th><th>상태</th></tr></thead>
     <tbody>{tr_html}</tbody>
   </table>
 </section>"""
 
 
-def generate_html(sections: list[str], checked_at: str, ref_rows: list[dict] | None = None) -> str:
-    css = """
+_CSS = """
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#FAF7F2;color:#2C1810;min-height:100vh}
 .header{background:linear-gradient(135deg,#D0663C 0%,#B0502C 100%);color:white;padding:48px 20px 24px;text-align:center}
@@ -545,14 +424,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .ref-note{font-size:12px;color:#8B7355}
 .ref-pending{color:#A89070;font-style:italic}
 """
-    ref_block = reference_summary_html(ref_rows or [])
+
+
+def render_html(sections: list[str], checked_at: str, summary_rows: list[dict]) -> str:
     return f"""<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>핫딜 모니터</title>
-  <style>{css}</style>
+  <style>{_CSS}</style>
 </head>
 <body>
   <div class="header">
@@ -560,7 +441,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <p class="subtitle">{checked_at} · 알구몬 통합 검색</p>
   </div>
   <div class="main">
-    {ref_block}
+    {_summary_table(summary_rows)}
     {"".join(sections)}
   </div>
   <div class="footer">알구몬 통합 핫딜 · 키워드별 P25 자체 산출</div>
@@ -569,7 +450,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 
 # ─────────────────────────────────────────────
-# GitHub 배포
+# GitHub Pages 배포
 # ─────────────────────────────────────────────
 
 def deploy_to_github(html: str, token: str, owner: str, repo: str, path: str) -> str:
@@ -582,8 +463,7 @@ def deploy_to_github(html: str, token: str, owner: str, repo: str, path: str) ->
     sha = None
     try:
         req = urllib.request.Request(api_url, headers=headers)
-        resp = json.loads(urllib.request.urlopen(req, timeout=10).read())
-        sha = resp.get("sha")
+        sha = json.loads(urllib.request.urlopen(req, timeout=10).read()).get("sha")
     except urllib.error.HTTPError as e:
         if e.code != 404:
             raise
@@ -610,11 +490,73 @@ def deploy_to_github(html: str, token: str, owner: str, repo: str, path: str) ->
 def load_keywords() -> dict:
     if not KEYWORDS_FILE.exists():
         sys.exit(f"[FATAL] {KEYWORDS_FILE} 없음")
-    # utf-8-sig 로 BOM 처리 (PowerShell이 추가한 경우 대비)
     return json.loads(KEYWORDS_FILE.read_text(encoding="utf-8-sig"))
 
 
-def main():
+def _filter_deals(deals: list[dict], kw: dict, now: datetime) -> list[dict]:
+    """키워드 설정에 따라 deals 필터링 (require_any / exclude / 만료 / 날짜)."""
+    require_any = [t.lower() for t in kw.get("require_any", [])]
+    excludes    = [e.lower() for e in kw.get("exclude", [])]
+    stale_days  = kw.get("stale_days", 30)
+
+    before = len(deals)
+    if require_any:
+        deals = [d for d in deals if any(t in d["title"].lower() for t in require_any)]
+        if len(deals) != before:
+            print(f"  카드 {before} → {len(deals)}건 (require_any 적용)", flush=True)
+            before = len(deals)
+    if excludes:
+        deals = [d for d in deals if not any(e in d["title"].lower() for e in excludes)]
+        if len(deals) != before:
+            print(f"  카드 → {len(deals)}건 (제외어 적용)", flush=True)
+    if not require_any and not excludes:
+        print(f"  카드 {len(deals)}건 수집", flush=True)
+
+    # 만료(ended=True) 제외
+    before = len(deals)
+    deals = [d for d in deals if not d.get("ended", False)]
+    if len(deals) != before:
+        print(f"  만료 제외: {before} → {len(deals)}건", flush=True)
+
+    # 날짜 필터
+    cutoff = now - timedelta(days=stale_days)
+    fresh = [d for d in deals if d.get("date") is None or d["date"] >= cutoff]
+    if len(fresh) != len(deals):
+        print(f"  날짜 필터 ({stale_days}일 이내): {len(deals)} → {len(fresh)}건", flush=True)
+    return fresh
+
+
+def _send_push_for_keyword(kid: str, kw: dict, hits: list[dict]) -> bool:
+    """키워드별 PWA Web Push 발송. 성공 시 True."""
+    if not send_push or not hits:
+        return True
+    unit = kw.get("unit", "개")
+    title = f"{kw['emoji']} {kw['name']} 핫딜 {len(hits)}건"
+    body_lines = []
+    for d in hits[:5]:
+        if d.get("price_per_unit"):
+            age = humanize_age(d.get("date"))
+            src = d.get("source") or ""
+            age_s = f" · {age}" if age else ""
+            src_s = f" · {src}" if src else ""
+            body_lines.append(f"{d['price_per_unit']:,}원/{unit}{age_s}{src_s} — {d['title'][:30]}")
+    body = "\n".join(body_lines) or "새 핫딜"
+
+    actions = []
+    if len(hits) >= 2:
+        actions.append({"action": "deal2", "title": "🛒 #2", "url": hits[1].get("external") or hits[1]["url"]})
+    actions.append({"action": "report", "title": "📋 리포트", "url": f"{REPORT_BASE_URL}#kw-{kid}"})
+
+    first_url = hits[0].get("external") or hits[0]["url"]
+    try:
+        ok, fail = send_push(kid, title, body, url=first_url, actions=actions)
+        return (ok > 0) or (ok + fail == 0)
+    except Exception as e:
+        print(f"  [WARN] push 예외: {e}", flush=True)
+        return False
+
+
+def main() -> None:
     now = datetime.now()
     force = os.environ.get("FORCE_RUN", "").lower() in ("1", "true", "yes")
     if not force and not (9 <= now.hour < 20):
@@ -624,81 +566,57 @@ def main():
     cfg_data = load_keywords()
     keywords = cfg_data.get("keywords", [])
     settings = cfg_data.get("scan_settings", {})
-    timeout  = settings.get("request_timeout_sec", 15)
-    delay    = settings.get("delay_between_keywords_sec", 1.5)
-    max_posts = settings.get("max_posts_per_keyword", 30)
+    timeout   = settings.get("request_timeout_sec", 15)
+    inter_delay = settings.get("delay_between_keywords_sec", 1.5)
+    max_posts = settings.get("max_posts_per_keyword", 50)
 
     config = json.loads(CONFIG_FILE.read_text(encoding="utf-8")) if CONFIG_FILE.exists() else {}
-    gh_token   = os.environ.get("GH_TOKEN")   or config.get("github_token", "")
-    gh_owner   = os.environ.get("GH_OWNER")   or config.get("github_owner", "")
-    gh_repo    = os.environ.get("GH_REPO")    or config.get("github_repo", "")
-    gh_path    = os.environ.get("GH_PATH")    or config.get("github_deals_path", "deals.html")
+    gh_token = os.environ.get("GH_TOKEN") or config.get("github_token", "")
+    gh_owner = os.environ.get("GH_OWNER") or config.get("github_owner", "")
+    gh_repo  = os.environ.get("GH_REPO")  or config.get("github_repo", "")
+    gh_path  = os.environ.get("GH_PATH")  or config.get("github_deals_path", "deals.html")
 
     print(f"\n[{now.strftime('%Y-%m-%d %H:%M')}] 알구몬 키워드 모니터 시작 — {len(keywords)} 키워드", flush=True)
 
     seen = load_seen()
     sections: list[str] = []
-    ref_rows: list[dict] = []
-    total_new_hits = 0
+    summary_rows: list[dict] = []
+    total_new = 0
 
     for i, kw in enumerate(keywords):
         kid = kw["id"]
         queries = kw.get("search_queries") or [kw.get("search_query", "")]
         queries = [q for q in queries if q]
-        excludes = [e.lower() for e in kw.get("exclude", [])]
-        require_any = [t.lower() for t in kw.get("require_any", [])]
         single_item = kw.get("single_item", False)
         ppu_min = kw.get("ppu_min", DEFAULT_PPU_MIN)
         ppu_max = kw.get("ppu_max", DEFAULT_PPU_MAX)
-        stale_days = kw.get("stale_days", 30)
+        min_samples = kw.get("min_samples", 6)
+        alert_pct = kw.get("alert_pct", 80)
+        iqr_k = kw.get("outlier_iqr_k", 1.5)
         verify_links = kw.get("verify_links", True)
+        unit = kw.get("unit", "개")
+
         print(f"\n[{kid}] 검색어 {queries}...", flush=True)
-        cards = fetch_search_multi(queries, timeout=timeout, delay=1.0)[:max_posts]
-        before = len(cards)
-        if require_any:
-            cards = [c for c in cards if any(t in c["title"].lower() for t in require_any)]
-            if len(cards) != before:
-                print(f"  카드 {before} → {len(cards)}건 (require_any 적용)", flush=True)
-                before = len(cards)
-        if excludes:
-            cards = [c for c in cards if not any(e in c["title"].lower() for e in excludes)]
-            if len(cards) != before:
-                print(f"  카드 → {len(cards)}건 (제외어 적용)", flush=True)
-        if not require_any and not excludes:
-            print(f"  카드 {len(cards)}건 수집", flush=True)
+        deals = fetch_search_multi(queries, timeout=timeout, delay=1.0)[:max_posts]
+        deals = _filter_deals(deals, kw, now)
 
-        # 만료된 deal 제외 (알구몬이 ended=True 로 표시한 것)
-        before = len(cards)
-        cards = [c for c in cards if not c.get("ended", False)]
-        if len(cards) != before:
-            print(f"  만료 제외: {before} → {len(cards)}건", flush=True)
+        # sanity / unit 부여
+        for d in deals:
+            apply_sanity(d, single_item=single_item, ppu_min=ppu_min, ppu_max=ppu_max)
+            d["unit"] = unit
 
-        # 날짜 필터 (stale_days 이내)
-        cutoff = now - timedelta(days=stale_days)
-        fresh = [c for c in cards if c.get("date") is None or c["date"] >= cutoff]
-        if len(fresh) != len(cards):
-            print(f"  날짜 필터 ({stale_days}일 이내): {len(cards)} → {len(fresh)}건", flush=True)
-        cards = fresh
-
-        # sanity 적용
-        for c in cards:
-            apply_sanity(c, single_item=single_item, ppu_min=ppu_min, ppu_max=ppu_max)
-            c["unit"] = kw.get("unit", "개")
-
-        unit_prices = [c["price_per_unit"] for c in cards if c.get("price_per_unit")]
-        stats = stats_with_iqr(unit_prices, k=kw.get("outlier_iqr_k", 1.5))
+        unit_prices = [d["price_per_unit"] for d in deals if d.get("price_per_unit")]
+        stats = compute_stats(unit_prices, iqr_k=iqr_k)
         print(f"  단가 {len(unit_prices)}건, outlier 제거 후 {stats['n_clean']}건", flush=True)
 
         threshold = 0
         hits: list[dict] = []
-        if stats["n_clean"] >= kw.get("min_samples", 6):
-            threshold = int(stats["p25"] * kw.get("alert_pct", 80) / 100)
-            print(f"  P25={stats['p25']:,} → 임계값 {threshold:,}원/{kw.get('unit','개')}", flush=True)
-            for c in cards:
-                if c.get("price_per_unit") and c["price_per_unit"] <= threshold and c["id"] not in seen:
-                    hits.append(c)
+        if stats["n_clean"] >= min_samples:
+            threshold = int(stats["p25"] * alert_pct / 100)
+            print(f"  P25={stats['p25']:,} → 임계값 {threshold:,}원/{unit}", flush=True)
+            hits = [d for d in deals
+                    if d.get("price_per_unit") and d["price_per_unit"] <= threshold and d["id"] not in seen]
             print(f"  후보 핫딜 {len(hits)}건", flush=True)
-
             if verify_links and hits:
                 alive: list[dict] = []
                 for d in hits:
@@ -708,68 +626,39 @@ def main():
                 print(f"  링크 검증: {len(hits)} → {len(alive)}건 살아있음", flush=True)
                 hits = alive
         else:
-            print(f"  샘플 부족 ({stats['n_clean']} < {kw.get('min_samples', 6)}) — 알림 보류", flush=True)
+            print(f"  샘플 부족 ({stats['n_clean']} < {min_samples}) — 알림 보류", flush=True)
 
-        sections.append(keyword_section_html(kw, cards, stats, threshold, hits))
-        ref_rows.append({
-            "id":          kid,
-            "emoji":       kw.get("emoji", ""),
-            "name":        kw.get("name", kid),
-            "unit":        kw.get("unit", "개"),
-            "p25":         stats["p25"],
-            "n_clean":     stats["n_clean"],
-            "min_samples": kw.get("min_samples", 6),
-            "threshold":   threshold,
+        sections.append(_keyword_section(kw, deals, stats, threshold, hits))
+        summary_rows.append({
+            "id": kid, "emoji": kw.get("emoji", ""), "name": kw.get("name", kid),
+            "p25": stats["p25"], "n_clean": stats["n_clean"],
+            "min_samples": min_samples, "threshold": threshold,
         })
 
         if hits:
-            push_ok = True
-            if send_push:
-                push_title = f"{kw['emoji']} {kw['name']} 핫딜 {len(hits)}건"
-                lines = []
-                for d in hits[:5]:
-                    if d.get("price_per_unit"):
-                        age = humanize_age(d.get("date"))
-                        src = d.get("source", "")
-                        age_s = f" · {age}" if age else ""
-                        src_s = f" · {src}" if src else ""
-                        lines.append(f"{d['price_per_unit']:,}원/{kw.get('unit','개')}{age_s}{src_s} — {d['title'][:30]}")
-                push_body = "\n".join(lines) or "새 핫딜"
-                push_actions = []
-                if len(hits) >= 2:
-                    push_actions.append({"action": "deal2", "title": "🛒 #2", "url": hits[1].get("external") or hits[1]["url"]})
-                push_actions.append({"action": "report", "title": "📋 리포트", "url": f"https://nothing881122-netizen.github.io/flight-deals/deals.html#kw-{kid}"})
-                first_url = hits[0].get("external") or hits[0]["url"]
-                try:
-                    ok, fail = send_push(kid, push_title, push_body, url=first_url, actions=push_actions)
-                    push_ok = (ok > 0) or (ok + fail == 0)
-                except Exception as e:
-                    print(f"  [WARN] push 예외: {e}", flush=True)
-                    push_ok = False
-
-            if push_ok:
+            if _send_push_for_keyword(kid, kw, hits):
                 seen.update(d["id"] for d in hits)
-                total_new_hits += len(hits)
+                total_new += len(hits)
             else:
-                print(f"  [WARN] PWA push 실패 — seen 미갱신, 다음 실행에서 재시도", flush=True)
+                print("  [WARN] PWA push 실패 — seen 미갱신, 다음 실행에서 재시도", flush=True)
 
         if i < len(keywords) - 1:
-            time.sleep(delay)
+            time.sleep(inter_delay)
 
     checked_at = now.strftime("%Y-%m-%d %H:%M")
-    html = generate_html(sections, checked_at, ref_rows=ref_rows)
+    html = render_html(sections, checked_at, summary_rows)
     REPORT_FILE.write_text(html, encoding="utf-8")
     print(f"\n[HTML] 리포트 저장: {REPORT_FILE}", flush=True)
 
     if gh_token and gh_owner and gh_repo:
         try:
-            report_url = deploy_to_github(html, gh_token, gh_owner, gh_repo, gh_path)
-            print(f"[URL] {report_url}", flush=True)
+            url = deploy_to_github(html, gh_token, gh_owner, gh_repo, gh_path)
+            print(f"[URL] {url}", flush=True)
         except Exception as e:
             print(f"[ERROR] GitHub 배포 실패: {e}", flush=True)
 
     save_seen(seen)
-    print(f"\n[완료] 새 핫딜 총 {total_new_hits}건  ({datetime.now().strftime('%H:%M:%S')})", flush=True)
+    print(f"\n[완료] 새 핫딜 총 {total_new}건  ({datetime.now().strftime('%H:%M:%S')})", flush=True)
 
 
 if __name__ == "__main__":

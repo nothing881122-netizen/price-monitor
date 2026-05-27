@@ -1,4 +1,4 @@
-name: ppomppu hotdeal monitor
+name: algumon keyword hotdeal monitor
 
 on:
   schedule:
@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: pip install pywebpush
 
-      - name: Run price monitor
+      - name: Run keyword monitor
         env:
           GH_TOKEN:                 ${{ secrets.GH_DEPLOY_TOKEN }}
           GH_OWNER:                 nothing881122-netizen
