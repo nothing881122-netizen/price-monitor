@@ -340,10 +340,11 @@ def _keyword_section(kw: dict, deals: list[dict], stats: dict, threshold: int, h
             body += "".join(_deal_card(d, threshold) for d in hits)
         else:
             body += '<p class="note">현재 기준 이하 게시물 없음</p>'
-        # 최근 게시물 — 30일 이내 + 가격 파싱된 것만 (최대 5건)
+        # 최근 게시물 — 30일 이내 + 가격 파싱된 것만 (최대 2건)
+        # TODO: 향후 keywords.json 의 recent_count 옵션 (0/2/5)으로 키워드별 조정
         cutoff = datetime.now() - timedelta(days=30)
         top = [d for d in deals
-               if d.get("price_per_unit") and d.get("date") and d["date"] >= cutoff][:5]
+               if d.get("price_per_unit") and d.get("date") and d["date"] >= cutoff][:2]
         if top:
             body += '<h4>최근 게시물</h4>'
             body += "".join(_deal_card(d, threshold) for d in top)
