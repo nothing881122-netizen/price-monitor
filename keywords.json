@@ -110,17 +110,46 @@
       "id": "granola",
       "emoji": "🥣",
       "name": "그래놀라",
-      "description": "그래놀라 평균보다 저렴",
-      "search_queries": ["그래놀라"],
-      "require_any": ["그래놀라"],
-      "exclude": ["바 ", "쿠키", "음료", "드링크", "초코바"],
+      "description": "켈로그·동서·산과들에 브랜드별 평균 대비 저렴",
       "unit": "단위",
-      "alert_pct": 80,
-      "min_samples": 4,
-      "outlier_iqr_k": 1.5,
       "stale_days": 60,
       "verify_links": true,
-      "default": true
+      "exclude": ["쿠키", "음료", "드링크", "초코바"],
+      "ppu_min": 1000,
+      "ppu_max": 20000,
+      "default": true,
+      "sub_brands": [
+        {
+          "id": "kellogg",
+          "name": "켈로그",
+          "search_queries": ["켈로그 그래놀라", "Kellogg 그래놀라", "크렌베리 아몬드 그래놀라", "리얼 그래놀라"],
+          "require_any": ["켈로그", "kellogg"],
+          "exclude": ["동서", "포스트", "산과들에"],
+          "alert_pct": 80,
+          "min_samples": 3,
+          "outlier_iqr_k": 1.5
+        },
+        {
+          "id": "dongseo",
+          "name": "동서",
+          "search_queries": ["동서 그래놀라", "동서 초코 그래놀라", "동서식품 그래놀라"],
+          "require_any": ["동서"],
+          "exclude": ["켈로그", "포스트", "산과들에"],
+          "alert_pct": 80,
+          "min_samples": 3,
+          "outlier_iqr_k": 1.5
+        },
+        {
+          "id": "sangwadulae",
+          "name": "산과들에",
+          "search_queries": ["산과들에 그래놀라", "산과들에"],
+          "require_any": ["산과들에"],
+          "exclude": ["켈로그", "동서", "포스트", "바 ", "초코바"],
+          "alert_pct": 80,
+          "min_samples": 3,
+          "outlier_iqr_k": 1.5
+        }
+      ]
     },
     {
       "id": "myprotein",
