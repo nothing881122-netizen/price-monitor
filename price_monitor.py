@@ -315,14 +315,12 @@ def _deal_card(deal: dict, threshold: int) -> str:
     age_html = f'<span class="age">{age}</span>' if age else ""
     src = deal.get("source") or ""
     src_html = f'<span class="src">📍 {src}</span>' if src else ""
-    primary = deal.get("external") or deal.get("url")
-    detail  = deal.get("url")
+    link = deal.get("url") or deal.get("external")
     return f"""<div class="card">
   <p class="card-title">{deal['title'][:80]} {age_html} {src_html}</p>
   <p class="card-price">{price_line} {badge}</p>
   <div class="card-actions">
-    <a href="{primary}" target="_blank" class="btn btn-primary">🛒 쇼핑몰로</a>
-    <a href="{detail}" target="_blank" class="btn">알구몬 상세</a>
+    <a href="{link}" target="_blank" class="btn btn-primary">딜 보러 가기 →</a>
   </div>
 </div>"""
 
