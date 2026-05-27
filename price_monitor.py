@@ -492,8 +492,33 @@ def load_keywords() -> dict:
     return json.loads(KEYWORDS_FILE.read_text(encoding="utf-8-sig"))
 
 
+def _dedup_cross_source(deals: list[dict]) -> list[dict]:
+    """동일 (쇼핑몰, 총가, 단가) 인 카드는 같은 핫딜로 간주, 가장 먼저 올라온 것만 유지.
+    여러 커뮤니티(뽐뿌·아카라이브·클리앙 등)에 같은 딜이 공유될 때 중복 알림 방지."""
+    seen: dict[tuple, dict] = {}
+    others: list[dict] = []  # 키 생성 불가한 deal (store/총가 None)
+    for d in deals:
+        store = d.get("store") or ""
+        total = d.get("total_price")
+        ppu = d.get("price_per_unit")
+        if not store or total is None:
+            others.append(d)
+            continue
+        key = (store, total, ppu)
+        existing = seen.get(key)
+        if existing is None:
+            seen[key] = d
+        else:
+            # 더 먼저 올라온 게 원본일 가능성 높음 → 그것 유지
+            d_date = d.get("date")
+            e_date = existing.get("date")
+            if d_date and e_date and d_date < e_date:
+                seen[key] = d
+    return list(seen.values()) + others
+
+
 def _filter_deals(deals: list[dict], kw: dict, now: datetime) -> list[dict]:
-    """키워드 설정에 따라 deals 필터링 (require_any / exclude / 만료 / 날짜)."""
+    """키워드 설정에 따라 deals 필터링 (require_any / exclude / 만료 / 날짜 / 중복)."""
     require_any = [t.lower() for t in kw.get("require_any", [])]
     excludes    = [e.lower() for e in kw.get("exclude", [])]
     stale_days  = kw.get("stale_days", 30)
@@ -522,6 +547,12 @@ def _filter_deals(deals: list[dict], kw: dict, now: datetime) -> list[dict]:
     fresh = [d for d in deals if d.get("date") is None or d["date"] >= cutoff]
     if len(fresh) != len(deals):
         print(f"  날짜 필터 ({stale_days}일 이내): {len(deals)} → {len(fresh)}건", flush=True)
+
+    # 동일 핫딜 중복 제거 (여러 사이트 공유)
+    before = len(fresh)
+    fresh = _dedup_cross_source(fresh)
+    if len(fresh) != before:
+        print(f"  교차 사이트 중복 제거: {before} → {len(fresh)}건", flush=True)
     return fresh
 
 
