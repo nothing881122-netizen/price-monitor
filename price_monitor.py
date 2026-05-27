@@ -470,14 +470,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 
 def render_super_html(super_items: list[dict], checked_at: str) -> str:
-    """찐 특가 전용 페이지. URL 의 ?id= 가 있으면 그 카드를 맨 위 강조."""
+    """찐 특가 전용 페이지. URL 의 ?id= 가 있으면 그 카드를 맨 위 강조.
+    활성 찐 특가가 0건이면 메인 리포트로 redirect (희귀 개념 유지)."""
     if not super_items:
-        body = """<div class="empty-card">
-  <div class="empty-emoji">😌</div>
-  <p class="empty-text">지금은 찐 특가가 없습니다</p>
-  <p class="empty-sub">평소 가격의 60% 이하인 진짜 핫딜이 발견되면 여기에 표시됩니다.</p>
-</div>"""
-    else:
+        # 활성 찐 특가 없음 — 페이지 진입 시 메인 리포트로 즉시 이동
+        return """<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0;url=deals.html">
+  <title>알리미</title>
+</head>
+<body></body>
+</html>"""
+    if True:
         cards = []
         for s in super_items:
             d = s["deal"]
