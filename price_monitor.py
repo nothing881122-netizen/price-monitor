@@ -373,7 +373,7 @@ def _summary_table(rows: list[dict]) -> str:
 </tr>"""
     return f"""<section class="ref-section">
   <h2 class="ref-title">📊 기준가 종합</h2>
-  <p class="ref-source">시장 가격을 자동 추적해 평소보다 싸진 순간 알려드립니다.</p>
+  <p class="ref-source">평소보다 싸진 순간을 절대 놓치지 않고 알려드립니다.</p>
   <table class="ref-table">
     <tbody>{tr_html}</tbody>
   </table>
