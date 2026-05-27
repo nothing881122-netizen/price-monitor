@@ -10,17 +10,35 @@
       "id": "spam",
       "emoji": "🥫",
       "name": "스팸",
-      "description": "스팸 캔당 평균보다 저렴",
-      "search_queries": ["스팸"],
-      "require_any": ["스팸"],
-      "exclude": ["햇반", "리챔", "비비고", "왕교자", "딤섬", "냥이", "고양이", "크래미"],
+      "description": "클래식 / 라이트 분리 통계",
       "unit": "캔",
-      "alert_pct": 80,
-      "min_samples": 4,
-      "outlier_iqr_k": 1.5,
       "stale_days": 60,
+      "representative_brand_id": "spam_classic",
       "verify_links": true,
-      "default": true
+      "exclude": ["햇반", "리챔", "비비고", "왕교자", "딤섬", "냥이", "고양이", "크래미"],
+      "default": true,
+      "sub_brands": [
+        {
+          "id": "spam_classic",
+          "name": "클래식",
+          "search_queries": ["스팸 클래식", "스팸 200g", "스팸 340g", "스팸 200그램", "스팸 340그램"],
+          "require_any": ["스팸"],
+          "exclude": ["라이트", "light", "120g"],
+          "alert_pct": 80,
+          "min_samples": 3,
+          "outlier_iqr_k": 1.5
+        },
+        {
+          "id": "spam_light",
+          "name": "라이트",
+          "search_queries": ["스팸 라이트", "스팸 light", "스팸 120g"],
+          "require_any": ["라이트", "light", "120g"],
+          "exclude": ["클래식", "200g", "340g", "200그램", "340그램", "닭가슴살"],
+          "alert_pct": 80,
+          "min_samples": 3,
+          "outlier_iqr_k": 1.5
+        }
+      ]
     },
     {
       "id": "tuna",
