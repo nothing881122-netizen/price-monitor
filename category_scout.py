@@ -131,6 +131,23 @@ body{font-family:-apple-system,'Segoe UI',Roboto,'JetBrains Mono',monospace;back
 .dropped code{background:#252B3D;padding:1px 6px;border-radius:4px;color:#8B95A8;margin-right:4px}
 .footer{text-align:center;padding:24px;font-size:10px;color:#4A5670;font-family:monospace;letter-spacing:0.3px}
 .note{font-size:11px;color:#8B95A8;background:#252B3D;border-left:3px solid #4F8FD9;padding:10px 12px;border-radius:6px;margin:14px 0;line-height:1.6}
+/* pick bar (모바일 워크플로우) */
+.pick-bar{position:sticky;top:0;z-index:10;background:rgba(26,31,46,.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid #2D3447;padding:10px 16px;display:flex;align-items:center;gap:8px;font-family:monospace}
+.pick-count{flex:1;font-size:12px;color:#8B95A8}
+.pick-count b{color:#FFF;font-size:14px;margin:0 2px}
+.pick-action{background:#3A4258;color:#FFF;border:none;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:0.3px;min-height:36px}
+.pick-action:active{background:#4F8FD9;transform:scale(0.97)}
+.pick-action.clear{background:transparent;color:#6B7280;border:1px solid #3A4258;padding:7px 12px}
+.pick-action:disabled{opacity:.3;cursor:not-allowed}
+.pick-action.copied{background:#7EB66B}
+/* pick toggle button on each card */
+.pick-btn{background:transparent;border:1px solid #3A4258;color:#B8BFCE;padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:monospace;letter-spacing:0.3px;min-height:38px;font-weight:600;transition:all .15s}
+.pick-btn:active{transform:scale(0.97)}
+.pick-btn.picked{background:#4F8FD9;border-color:#4F8FD9;color:#FFF}
+.pick-btn.picked:before{content:"✅ "}
+.pick-btn:not(.picked):before{content:"⬜ "}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#7EB66B;color:#1A1F2E;padding:10px 18px;border-radius:24px;font-size:13px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.4);opacity:0;transition:opacity .2s;pointer-events:none;z-index:20;font-family:monospace}
+.toast.show{opacity:1}
 """
 
 
@@ -164,6 +181,11 @@ def render_scout_html(top_picks: list[dict], dropped: list[dict],
                              f'</a><span class="src">· {src}</span>'
                              f'</div>')
             search_url = _algumon_search_url(p["name"])
+            # 카드별 후보 메타 — JSON 으로 data-cand 에 직렬화 (JS 가 토글/복사 시 사용)
+            cand_meta = json.dumps({
+                "id": p["id"], "name": p["name"],
+                "emoji": p["emoji"], "category": p["category"],
+            }, ensure_ascii=False).replace("'", "&#39;")
             cards.append(f"""<div class="cand{top_class}">
   <div class="cand-head">
     <div class="cand-title">
@@ -181,6 +203,7 @@ def render_scout_html(top_picks: list[dict], dropped: list[dict],
   {('<div class="rep-block"><div class="rep-label">대표 핫딜 (단가 낮은 순)</div>' + rep_html + '</div>') if rep_html else ''}
   <div class="actions">
     <a class="btn" href="{search_url}" target="_blank">알구몬 검색 →</a>
+    <button class="pick-btn" data-cand='{cand_meta}'>keywords.json 후보</button>
   </div>
 </div>""")
         body = "\n".join(cards)
@@ -205,8 +228,109 @@ def render_scout_html(top_picks: list[dict], dropped: list[dict],
     note = """<div class="note">
       <b>점수 산식</b>: N × B × D × 10 &nbsp;&nbsp;
       <code>N</code>=게시물 수, <code>B</code>=유명 브랜드 매칭률, <code>D</code>=활성 핫딜 비율<br>
-      마음에 드는 후보는 keywords.json 에 정식 등록 → 다음 cron 부터 정규 모니터링.
+      마음에 드는 후보 ✅ 표시 후 [복사] → 채팅에 붙여넣으면 keywords.json 에 자동 등록.
     </div>"""
+
+    # 모바일 워크플로우 — 토글/복사/공유 sticky bar (top_picks 있을 때만)
+    pick_bar = ""
+    if top_picks:
+        pick_bar = """<div class="pick-bar">
+      <span class="pick-count">선택한 <b id="pick-n">0</b>개</span>
+      <button class="pick-action" id="copy-btn" disabled>📋 복사</button>
+      <button class="pick-action" id="share-btn" disabled>📤 공유</button>
+      <button class="pick-action clear" id="clear-btn" disabled>↺</button>
+    </div>"""
+
+    pick_script = """
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  const LS_KEY = 'scout.picks';
+  const load = () => { try { return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); } catch { return []; } };
+  const save = (arr) => localStorage.setItem(LS_KEY, JSON.stringify(arr));
+
+  let picks = load();
+  const $toast = document.getElementById('toast');
+  const $n = document.getElementById('pick-n');
+  const $copy = document.getElementById('copy-btn');
+  const $share = document.getElementById('share-btn');
+  const $clear = document.getElementById('clear-btn');
+
+  function toast(msg) {
+    $toast.textContent = msg;
+    $toast.classList.add('show');
+    setTimeout(() => $toast.classList.remove('show'), 1800);
+  }
+
+  function updateUI() {
+    if ($n) $n.textContent = picks.length;
+    const disabled = picks.length === 0;
+    [$copy, $share, $clear].forEach(b => { if (b) b.disabled = disabled; });
+    const ids = new Set(picks.map(p => p.id));
+    document.querySelectorAll('.pick-btn').forEach(btn => {
+      try {
+        const cand = JSON.parse(btn.dataset.cand);
+        if (ids.has(cand.id)) {
+          btn.classList.add('picked');
+          btn.textContent = '선택됨';
+        } else {
+          btn.classList.remove('picked');
+          btn.textContent = 'keywords.json 후보';
+        }
+      } catch(e) {}
+    });
+  }
+
+  document.querySelectorAll('.pick-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      try {
+        const cand = JSON.parse(btn.dataset.cand);
+        const idx = picks.findIndex(p => p.id === cand.id);
+        if (idx >= 0) picks.splice(idx, 1);
+        else picks.push(cand);
+        save(picks);
+        updateUI();
+      } catch(e) { console.error(e); }
+    });
+  });
+
+  function formatText() {
+    if (picks.length === 0) return '';
+    const lines = picks.map(p => `- ${p.id} (${p.emoji} ${p.name})`);
+    return 'keywords.json 에 추가해줘:\\n' + lines.join('\\n');
+  }
+
+  if ($copy) $copy.addEventListener('click', async () => {
+    const text = formatText();
+    try {
+      await navigator.clipboard.writeText(text);
+      $copy.classList.add('copied');
+      $copy.textContent = '✓ 복사됨';
+      toast(picks.length + '개 복사됨 — 채팅에 붙여넣기');
+      setTimeout(() => { $copy.classList.remove('copied'); $copy.textContent = '📋 복사'; }, 1800);
+    } catch(e) {
+      toast('복사 실패: ' + e.message);
+    }
+  });
+
+  if ($share) $share.addEventListener('click', async () => {
+    if (!navigator.share) { toast('이 브라우저는 공유 미지원 — 복사 사용'); return; }
+    try {
+      await navigator.share({title: '추가할 카테고리 후보 ' + picks.length + '개', text: formatText()});
+    } catch(e) { /* 사용자 취소 */ }
+  });
+
+  if ($clear) $clear.addEventListener('click', () => {
+    if (picks.length === 0) return;
+    if (confirm('선택한 ' + picks.length + '개 모두 해제할까요?')) {
+      picks = []; save(picks); updateUI(); toast('해제됨');
+    }
+  });
+
+  updateUI();
+})();
+</script>
+"""
 
     return f"""<!DOCTYPE html>
 <html lang="ko">
@@ -222,6 +346,7 @@ def render_scout_html(top_picks: list[dict], dropped: list[dict],
     <p class="subtitle">{checked_at} · 알구몬 신규 카테고리 후보 분석</p>
     <p class="legend">관리/분석 페이지 — 본인 검토 후 keywords.json 에 등록</p>
   </div>
+  {pick_bar}
   <div class="main">
     {note}
     {body}
@@ -229,6 +354,7 @@ def render_scout_html(top_picks: list[dict], dropped: list[dict],
     {excluded_html}
   </div>
   <div class="footer">internal · 매일 07:17 KST 자동 분석</div>
+  {pick_script}
 </body>
 </html>"""
 
