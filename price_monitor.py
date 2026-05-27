@@ -597,6 +597,31 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:linear-gr
 </html>"""
 
 
+_TOGGLE_SYNC_SCRIPT = """
+<script>
+// PWA 와 같은 origin 이라 localStorage 공유. 사용자가 PWA 설정에서 OFF 한 토픽은 리포트에서도 숨김.
+(function(){
+  let prefs = {};
+  try { prefs = JSON.parse(localStorage.getItem('alimi.topics') || '{}'); } catch(e){}
+  // 사용자가 PWA 를 한 번도 안 본 경우 prefs 비어있음 → 모두 표시 (기본)
+  if (!prefs || Object.keys(prefs).length === 0) return;
+  // 키워드 섹션 숨김
+  document.querySelectorAll('section.keyword').forEach(sec => {
+    const id = sec.id.replace(/^kw-/, '');
+    if (prefs[id] === false) sec.style.display = 'none';
+  });
+  // 종합표 row 숨김
+  document.querySelectorAll('.ref-table tbody tr').forEach(tr => {
+    const a = tr.querySelector('a[href^="#kw-"]');
+    if (!a) return;
+    const id = a.getAttribute('href').replace('#kw-', '');
+    if (prefs[id] === false) tr.style.display = 'none';
+  });
+})();
+</script>
+"""
+
+
 def render_html(sections: list[str], checked_at: str, summary_rows: list[dict]) -> str:
     return f"""<!DOCTYPE html>
 <html lang="ko">
@@ -616,6 +641,7 @@ def render_html(sections: list[str], checked_at: str, summary_rows: list[dict]) 
     {"".join(sections)}
   </div>
   <div class="footer">알구몬 통합 핫딜 · 키워드별 P25 자체 산출</div>
+  {_TOGGLE_SYNC_SCRIPT}
 </body>
 </html>"""
 
