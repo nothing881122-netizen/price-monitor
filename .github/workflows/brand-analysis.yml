@@ -1,8 +1,8 @@
-name: monthly brand trend analyzer
+name: weekly brand trend analyzer
 
 on:
   schedule:
-    - cron: '17 1 1 * *'   # 매월 1일 KST 10:17 (정각 회피)
+    - cron: '17 1 * * 6'   # 매주 토요일 KST 10:17 (정각 회피)
   workflow_dispatch:        # 수동 실행 버튼
 
 jobs:

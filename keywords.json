@@ -245,6 +245,68 @@
       "stale_days": 180,
       "verify_links": true,
       "default": true
+    },
+    {
+      "id": "airpods",
+      "emoji": "🎧",
+      "name": "에어팟",
+      "description": "에어팟 프로 2세대 / 4세대",
+      "unit": "개",
+      "stale_days": 180,
+      "verify_links": true,
+      "exclude": ["케이스", "스킨", "스트랩", "보관함", "리필봉투", "크록스", "for ", "호환"],
+      "default": true,
+      "sub_brands": [
+        {
+          "id": "airpods_pro2",
+          "name": "에어팟 프로 2",
+          "search_queries": ["에어팟 프로 2", "AirPods Pro 2", "에어팟프로2", "AirPods Pro 2세대"],
+          "require_any": ["pro", "프로"],
+          "exclude": ["에어팟 4", "AirPods 4", "에어팟4", "에어팟 3", "AirPods 3", "에어팟3", "1세대"],
+          "single_item": true,
+          "ppu_min": 200000,
+          "ppu_max": 450000,
+          "alert_pct": 90,
+          "min_samples": 3,
+          "outlier_iqr_k": 1.5
+        },
+        {
+          "id": "airpods_4",
+          "name": "에어팟 4세대",
+          "search_queries": ["에어팟 4", "AirPods 4", "에어팟 4세대"],
+          "require_any": ["에어팟 4", "airpods 4", "에어팟4", "4세대"],
+          "exclude": ["프로", "pro ", "에어팟 3", "AirPods 3", "에어팟3"],
+          "single_item": true,
+          "ppu_min": 150000,
+          "ppu_max": 350000,
+          "alert_pct": 90,
+          "min_samples": 3,
+          "outlier_iqr_k": 1.5
+        }
+      ]
+    },
+    {
+      "id": "xiaomi_powerbank",
+      "emoji": "🔋",
+      "name": "샤오미 슬림 보조배터리",
+      "description": "샤오미 울트라슬림 5000~10000mAh",
+      "search_queries": ["샤오미 보조배터리", "샤오미 슬림 보조배터리", "Xiaomi 보조배터리", "샤오미 5000mAh"],
+      "require_any": ["샤오미", "xiaomi"],
+      "exclude": [
+        "스마트폰", "5G 글로벌", "갤럭시", "iPhone", "iPad",
+        "Note ", "redmi note", "레드미 노트",
+        "TV", "공기청정기", "청소기", "세탁기"
+      ],
+      "unit": "개",
+      "single_item": true,
+      "ppu_min": 7000,
+      "ppu_max": 80000,
+      "alert_pct": 85,
+      "min_samples": 3,
+      "outlier_iqr_k": 1.5,
+      "stale_days": 180,
+      "verify_links": true,
+      "default": true
     }
   ]
 }
