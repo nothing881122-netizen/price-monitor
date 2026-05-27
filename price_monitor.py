@@ -39,6 +39,7 @@ KEYWORDS_FILE = ROOT / "keywords.json"
 SEEN_FILE     = ROOT / "seen_ids.json"
 REPORT_FILE   = ROOT / "deals.html"
 CONFIG_FILE   = ROOT / "config.json"
+HISTORY_FILE  = ROOT / "price_history.jsonl"  # Phase 2 — 가격 시계열 raw log
 
 ALGUMON_DATA_URL = "https://www.algumon.com/n/deal/__data.json?keyword={kw}"
 ALGUMON_DEAL_URL = "https://www.algumon.com/n/deal/{id}"
@@ -293,6 +294,39 @@ def load_seen() -> set:
 
 def save_seen(seen: set) -> None:
     SEEN_FILE.write_text(json.dumps(sorted(seen)[-2000:]), encoding="utf-8")
+
+
+def append_history(now: datetime, kid: str, brand_name: str, deals: list[dict]) -> int:
+    """가격 시계열 raw log. 단가(ppu) 산정된 deal 만 JSONL 로 append.
+    스키마 진화 자유 (필드 추가 OK, 옛 row 는 그 필드 없어도 OK).
+    Phase 3 (SQLite) 로 마이그레이션 시 `INSERT` 한 줄로 흡수됨.
+    """
+    if not deals:
+        return 0
+    iso = now.replace(microsecond=0).isoformat()
+    n = 0
+    with HISTORY_FILE.open("a", encoding="utf-8") as f:
+        for d in deals:
+            ppu = d.get("price_per_unit")
+            if not ppu:
+                continue
+            row = {
+                "t":     iso,                       # 검색 시각
+                "kid":   kid,                       # 키워드 id (spam/tuna/...)
+                "brand": brand_name,                # sub_brand id 또는 키워드명
+                "ppu":   ppu,                       # 단가 (원/개)
+                "total": d.get("total_price"),
+                "qty":   d.get("quantity"),
+                "store": d.get("store"),
+                "id":    d.get("id"),
+                "ended": bool(d.get("ended", False)),
+            }
+            pdate = d.get("date")
+            if pdate is not None:
+                row["pdate"] = pdate.strftime("%Y-%m-%d") if hasattr(pdate, "strftime") else str(pdate)
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+            n += 1
+    return n
 
 
 # ─────────────────────────────────────────────
@@ -968,6 +1002,11 @@ def main() -> None:
                 apply_sanity(d, single_item=single_item, ppu_min=ppu_min, ppu_max=ppu_max)
                 d["unit"] = unit
                 d["brand_name"] = bname
+
+            # Phase 2 — 가격 시계열 raw log (단가 산정된 deal append)
+            n_hist = append_history(now, kid, bname, deals)
+            if n_hist:
+                print(f"  히스토리 저장: {n_hist}건", flush=True)
 
             unit_prices = [d["price_per_unit"] for d in deals if d.get("price_per_unit")]
             stats = compute_stats(unit_prices, iqr_k=iqr_k)

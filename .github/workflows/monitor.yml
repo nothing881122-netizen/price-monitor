@@ -42,10 +42,10 @@ jobs:
           FORCE_RUN:                ${{ github.event_name == 'workflow_dispatch' && '1' || '0' }}
         run: python price_monitor.py
 
-      - name: Persist seen_ids.json
+      - name: Persist seen_ids.json + price_history.jsonl
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add seen_ids.json
-          git diff --staged --quiet || git commit -m "chore: update seen_ids [skip ci]"
+          git add seen_ids.json price_history.jsonl 2>/dev/null || true
+          git diff --staged --quiet || git commit -m "chore: update seen + history [skip ci]"
           git push
