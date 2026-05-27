@@ -604,56 +604,6 @@ def deploy_to_github(html: str, token: str, owner: str, repo: str, path: str) ->
 
 
 # ─────────────────────────────────────────────
-# ntfy
-# ─────────────────────────────────────────────
-
-def send_ntfy(topic: str, keyword: dict, hits: list[dict], threshold: int, report_url: str = "") -> bool:
-    lines = [f"{keyword['emoji']} {keyword['name']} 핫딜 {len(hits)}건!\n"]
-    for d in hits[:5]:
-        if d.get("price_per_unit"):
-            age = humanize_age(d.get("date"))
-            src = d.get("source", "")
-            age_s = f" · {age}" if age else ""
-            src_s = f" · {src}" if src else ""
-            lines.append(f"[{d['price_per_unit']:,}원/{d.get('unit','개')}{age_s}{src_s}] {d['title'][:40]}")
-    lines.append(f"\n알림 기준: ≤ {threshold:,}원/{keyword.get('unit','개')}")
-    if report_url:
-        lines.append(f"리포트: {report_url}")
-
-    actions = []
-    if len(hits) >= 2:
-        actions.append({"action": "view", "label": "🛒 #2 쇼핑몰", "url": hits[1].get("external") or hits[1]["url"]})
-    if report_url:
-        actions.append({"action": "view", "label": "📋 전체 리포트", "url": report_url})
-    click = hits[0].get("external") if hits else (report_url or "https://www.algumon.com/")
-    payload = json.dumps({
-        "topic":    topic,
-        "title":    f"{keyword['emoji']} {keyword['name']} 핫딜",
-        "message":  "\n".join(lines),
-        "tags":     ["fire"],
-        "priority": 4,
-        "click":    click,
-        "actions":  actions,
-    }, ensure_ascii=False).encode("utf-8")
-
-    for attempt in range(1, 4):
-        try:
-            req = urllib.request.Request(
-                "https://ntfy.sh",
-                data=payload,
-                headers={"Content-Type": "application/json; charset=utf-8"},
-            )
-            urllib.request.urlopen(req, timeout=15)
-            print(f"  [OK] ntfy 발송 ({keyword['id']})", flush=True)
-            return True
-        except Exception as e:
-            print(f"  [WARN] ntfy 실패 시도 {attempt}/3 ({keyword['id']}): {e}", flush=True)
-            if attempt < 3:
-                time.sleep(2 ** attempt)
-    return False
-
-
-# ─────────────────────────────────────────────
 # 메인
 # ─────────────────────────────────────────────
 
@@ -679,7 +629,6 @@ def main():
     max_posts = settings.get("max_posts_per_keyword", 30)
 
     config = json.loads(CONFIG_FILE.read_text(encoding="utf-8")) if CONFIG_FILE.exists() else {}
-    ntfy_topic = os.environ.get("NTFY_TOPIC") or config.get("ntfy_topic", "")
     gh_token   = os.environ.get("GH_TOKEN")   or config.get("github_token", "")
     gh_owner   = os.environ.get("GH_OWNER")   or config.get("github_owner", "")
     gh_repo    = os.environ.get("GH_REPO")    or config.get("github_repo", "")
@@ -774,10 +723,6 @@ def main():
         })
 
         if hits:
-            ntfy_ok = True
-            if ntfy_topic:
-                ntfy_ok = send_ntfy(ntfy_topic, kw, hits, threshold, "")
-
             push_ok = True
             if send_push:
                 push_title = f"{kw['emoji']} {kw['name']} 핫딜 {len(hits)}건"
@@ -793,7 +738,7 @@ def main():
                 push_actions = []
                 if len(hits) >= 2:
                     push_actions.append({"action": "deal2", "title": "🛒 #2", "url": hits[1].get("external") or hits[1]["url"]})
-                push_actions.append({"action": "report", "title": "📋 리포트", "url": "https://nothing881122-netizen.github.io/flight-deals/deals.html"})
+                push_actions.append({"action": "report", "title": "📋 리포트", "url": f"https://nothing881122-netizen.github.io/flight-deals/deals.html#kw-{kid}"})
                 first_url = hits[0].get("external") or hits[0]["url"]
                 try:
                     ok, fail = send_push(kid, push_title, push_body, url=first_url, actions=push_actions)
@@ -802,11 +747,11 @@ def main():
                     print(f"  [WARN] push 예외: {e}", flush=True)
                     push_ok = False
 
-            if ntfy_ok or push_ok:
+            if push_ok:
                 seen.update(d["id"] for d in hits)
                 total_new_hits += len(hits)
             else:
-                print(f"  [WARN] 알림 채널 실패 — seen 미갱신", flush=True)
+                print(f"  [WARN] PWA push 실패 — seen 미갱신, 다음 실행에서 재시도", flush=True)
 
         if i < len(keywords) - 1:
             time.sleep(delay)

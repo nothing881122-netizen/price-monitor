@@ -32,7 +32,6 @@ jobs:
 
       - name: Run price monitor
         env:
-          NTFY_TOPIC:               ${{ secrets.NTFY_TOPIC }}
           GH_TOKEN:                 ${{ secrets.GH_DEPLOY_TOKEN }}
           GH_OWNER:                 nothing881122-netizen
           GH_REPO:                  flight-deals
