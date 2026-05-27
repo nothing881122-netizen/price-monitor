@@ -1,0 +1,36 @@
+name: category scout (신규 카테고리 후보 발굴)
+
+on:
+  schedule:
+    - cron: '17 22 * * *'   # UTC 22:17 = KST 07:17
+  workflow_dispatch:
+
+jobs:
+  scout:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Seoul
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install pywebpush
+
+      - name: Run category scout
+        env:
+          GH_TOKEN:                 ${{ secrets.GH_DEPLOY_TOKEN }}
+          GH_OWNER:                 nothing881122-netizen
+          GH_REPO:                  flight-deals
+          WEB_PUSH_VAPID_PRIVATE:   ${{ secrets.WEB_PUSH_VAPID_PRIVATE }}
+          WEB_PUSH_SUBSCRIPTIONS:   ${{ secrets.WEB_PUSH_SUBSCRIPTIONS }}
+          WEB_PUSH_SUBJECT:         ${{ secrets.WEB_PUSH_SUBJECT }}
+        run: python category_scout.py

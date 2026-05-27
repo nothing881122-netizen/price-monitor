@@ -1,0 +1,254 @@
+{
+  "version": 1,
+  "comment": "category_scout 가 매일 스캔할 신규 카테고리 후보 풀. 기존 keywords.json 의 id 와 겹치면 자동 제외.",
+  "scan_settings": {
+    "max_posts_per_candidate": 50,
+    "request_timeout_sec": 15,
+    "delay_between_candidates_sec": 1.5,
+    "min_posts_for_recommendation": 5,
+    "top_n_recommend": 5
+  },
+  "categories": [
+    { "id": "food",        "name": "식품",       "emoji": "🍴" },
+    { "id": "household",   "name": "생활/위생",  "emoji": "🧺" },
+    { "id": "electronics", "name": "전자기기",   "emoji": "💻" }
+  ],
+  "candidates": [
+    {
+      "id": "ramen",
+      "emoji": "🍜",
+      "name": "라면 박스",
+      "category": "food",
+      "search_queries": ["신라면 박스", "진라면 박스", "라면 박스"],
+      "known_brands": ["신라면", "진라면", "짜파게티", "안성탕면", "삼양", "오뚜기", "농심", "팔도"],
+      "min_posts": 5
+    },
+    {
+      "id": "coffee_mix",
+      "emoji": "☕",
+      "name": "커피믹스",
+      "category": "food",
+      "search_queries": ["맥심 커피믹스", "카누", "맥심 모카골드", "스타벅스 비아"],
+      "known_brands": ["맥심", "카누", "모카골드", "조지아", "탐앤탐스", "프렌치카페", "스타벅스"],
+      "min_posts": 5
+    },
+    {
+      "id": "chicken_breast",
+      "emoji": "🐔",
+      "name": "닭가슴살",
+      "category": "food",
+      "search_queries": ["닭가슴살", "CJ 더 건강한 닭가슴살", "하림 닭가슴살"],
+      "known_brands": ["cj", "더 건강한", "하림", "오뚜기", "곰곰", "허닭", "랭킹닭컴"],
+      "min_posts": 5
+    },
+    {
+      "id": "olive_oil",
+      "emoji": "🫒",
+      "name": "올리브오일",
+      "category": "food",
+      "search_queries": ["올리브오일", "엑스트라버진 올리브오일"],
+      "known_brands": ["베르톨리", "콜라비타", "코스타도로", "올리타리아", "필리포", "비온디"],
+      "min_posts": 5
+    },
+    {
+      "id": "nuts",
+      "emoji": "🥜",
+      "name": "견과류 믹스",
+      "category": "food",
+      "search_queries": ["견과류", "하루견과", "아몬드 호두", "트레이더조 견과"],
+      "known_brands": ["트레이더조", "머거본", "동서", "다농원", "이마트", "하루견과", "kj"],
+      "min_posts": 5
+    },
+    {
+      "id": "frozen_dumpling",
+      "emoji": "🥟",
+      "name": "냉동만두",
+      "category": "food",
+      "search_queries": ["비비고 왕교자", "냉동만두", "해태 만두"],
+      "known_brands": ["비비고", "해태", "풀무원", "오뚜기", "동원", "cj"],
+      "min_posts": 5
+    },
+    {
+      "id": "soymilk",
+      "emoji": "🥛",
+      "name": "두유 박스",
+      "category": "food",
+      "search_queries": ["삼육두유", "베지밀", "매일두유", "두유 박스"],
+      "known_brands": ["삼육", "베지밀", "매일", "정식품", "남양"],
+      "min_posts": 5
+    },
+    {
+      "id": "honey",
+      "emoji": "🍯",
+      "name": "꿀",
+      "category": "food",
+      "search_queries": ["꿀", "아카시아 꿀", "잡화 꿀"],
+      "known_brands": ["로하스팜", "동서", "농협", "녹차원", "오케이꿀", "허니비"],
+      "min_posts": 5
+    },
+
+    {
+      "id": "water",
+      "emoji": "💧",
+      "name": "생수",
+      "category": "household",
+      "search_queries": ["삼다수", "백산수", "아이시스", "생수 2L"],
+      "known_brands": ["삼다수", "백산수", "아이시스", "평창수", "스파클", "강원평창수", "풀무원샘물", "lotte"],
+      "min_posts": 5
+    },
+    {
+      "id": "toilet_paper",
+      "emoji": "🧻",
+      "name": "화장지",
+      "category": "household",
+      "search_queries": ["크리넥스 화장지", "뽀삐", "깨끗한나라", "화장지 30롤"],
+      "known_brands": ["크리넥스", "뽀삐", "깨끗한나라", "코디", "잘풀리는집", "다정", "kleenex"],
+      "min_posts": 5
+    },
+    {
+      "id": "wet_wipes",
+      "emoji": "🧼",
+      "name": "물티슈",
+      "category": "household",
+      "search_queries": ["하기스 물티슈", "베베숲", "보솜이 물티슈", "물티슈 캡형"],
+      "known_brands": ["하기스", "베베숲", "보솜이", "맘아이", "순둥이", "곰곰", "huggies"],
+      "min_posts": 5
+    },
+    {
+      "id": "laundry_detergent",
+      "emoji": "🧺",
+      "name": "세탁세제",
+      "category": "household",
+      "search_queries": ["비트 세제", "액츠", "다우니", "퍼실 세탁세제", "테크"],
+      "known_brands": ["비트", "액츠", "다우니", "퍼실", "테크", "스파크", "한입세제", "downy", "persil"],
+      "min_posts": 5
+    },
+    {
+      "id": "fabric_softener",
+      "emoji": "🌸",
+      "name": "섬유유연제",
+      "category": "household",
+      "search_queries": ["다우니 유연제", "샤프란", "피죤", "섬유유연제"],
+      "known_brands": ["다우니", "샤프란", "피죤", "lenor", "snuggle", "downy"],
+      "min_posts": 5
+    },
+    {
+      "id": "dish_soap",
+      "emoji": "🍽️",
+      "name": "주방세제",
+      "category": "household",
+      "search_queries": ["트리오 주방세제", "자연퐁", "퐁퐁", "주방세제"],
+      "known_brands": ["트리오", "자연퐁", "퐁퐁", "참그린", "젠틀파인", "homeplanet"],
+      "min_posts": 5
+    },
+    {
+      "id": "body_wash",
+      "emoji": "🛁",
+      "name": "바디워시",
+      "category": "household",
+      "search_queries": ["도브 바디워시", "해피바스", "온더바디", "바디워시"],
+      "known_brands": ["도브", "해피바스", "온더바디", "비욘드", "dove", "nivea"],
+      "min_posts": 5
+    },
+    {
+      "id": "shampoo",
+      "emoji": "💇",
+      "name": "샴푸",
+      "category": "household",
+      "search_queries": ["판텐 샴푸", "헤드앤숄더", "ts 샴푸", "려 샴푸"],
+      "known_brands": ["판텐", "헤드앤숄더", "ts", "려", "닥터그루트", "미장센", "케라시스", "pantene", "head&shoulders"],
+      "min_posts": 5
+    },
+    {
+      "id": "toothpaste",
+      "emoji": "🪥",
+      "name": "치약",
+      "category": "household",
+      "search_queries": ["2080 치약", "클로즈업", "페리오", "치약 대용량"],
+      "known_brands": ["2080", "클로즈업", "페리오", "메디안", "센소다인", "콜게이트", "스파클링"],
+      "min_posts": 5
+    },
+    {
+      "id": "hand_soap",
+      "emoji": "🧴",
+      "name": "핸드워시",
+      "category": "household",
+      "search_queries": ["퍼실 핸드워시", "도브 핸드워시", "핸드워시 리필"],
+      "known_brands": ["퍼실", "도브", "라이프부이", "코리", "다이얼", "dove", "dettol"],
+      "min_posts": 5
+    },
+
+    {
+      "id": "ssd",
+      "emoji": "💿",
+      "name": "SSD",
+      "category": "electronics",
+      "search_queries": ["삼성 SSD 870 EVO", "삼성 980 PRO", "WD SSD", "솔리다임 SSD", "NVMe SSD"],
+      "known_brands": ["삼성", "samsung", "wd", "western digital", "솔리다임", "solidigm", "마이크론", "micron", "씨게이트", "seagate", "킹스톤", "kingston", "크루셜", "crucial"],
+      "min_posts": 5
+    },
+    {
+      "id": "galaxy_watch",
+      "emoji": "⌚",
+      "name": "갤럭시워치",
+      "category": "electronics",
+      "search_queries": ["갤럭시워치", "Galaxy Watch", "갤워치"],
+      "known_brands": ["갤럭시워치", "galaxy watch", "갤워치", "삼성"],
+      "min_posts": 5
+    },
+    {
+      "id": "apple_watch",
+      "emoji": "⌚",
+      "name": "애플워치",
+      "category": "electronics",
+      "search_queries": ["애플워치", "Apple Watch", "애플워치 SE", "애플워치 울트라"],
+      "known_brands": ["애플워치", "apple watch", "ultra", "se"],
+      "min_posts": 5
+    },
+    {
+      "id": "robot_vacuum",
+      "emoji": "🤖",
+      "name": "로봇청소기",
+      "category": "electronics",
+      "search_queries": ["로보락", "로봇청소기", "에코백스", "샤오미 로봇청소기"],
+      "known_brands": ["로보락", "roborock", "에코백스", "ecovacs", "샤오미", "xiaomi", "삼성", "lg", "아이로봇", "irobot"],
+      "min_posts": 5
+    },
+    {
+      "id": "air_purifier",
+      "emoji": "🌬️",
+      "name": "공기청정기",
+      "category": "electronics",
+      "search_queries": ["공기청정기", "샤오미 공기청정기", "블루스카이", "퓨리케어"],
+      "known_brands": ["샤오미", "xiaomi", "삼성", "블루스카이", "lg", "퓨리케어", "다이슨", "dyson", "위닉스", "winix", "발뮤다"],
+      "min_posts": 5
+    },
+    {
+      "id": "headphone_anc",
+      "emoji": "🎧",
+      "name": "노이즈캔슬링 헤드폰",
+      "category": "electronics",
+      "search_queries": ["소니 WH-1000XM5", "보스 QC", "노이즈캔슬링 헤드폰", "WH-1000XM4"],
+      "known_brands": ["소니", "sony", "wh-1000", "보스", "bose", "qc45", "qc35", "젠하이저", "sennheiser", "에어팟맥스"],
+      "min_posts": 5
+    },
+    {
+      "id": "mechanical_keyboard",
+      "emoji": "⌨️",
+      "name": "기계식 키보드",
+      "category": "electronics",
+      "search_queries": ["기계식 키보드", "앱코 키보드", "레오폴드", "키크론", "haty"],
+      "known_brands": ["앱코", "abko", "레오폴드", "leopold", "키크론", "keychron", "로지텍", "logitech", "체리", "cherry", "한성", "varmilo", "ducky"],
+      "min_posts": 5
+    },
+    {
+      "id": "wireless_charger",
+      "emoji": "🔌",
+      "name": "무선충전기",
+      "category": "electronics",
+      "search_queries": ["무선충전기", "벨킨 무선충전", "맥세이프 충전기", "삼성 무선충전"],
+      "known_brands": ["벨킨", "belkin", "삼성", "samsung", "앤커", "anker", "맥세이프", "magsafe", "애플", "apple"],
+      "min_posts": 5
+    }
+  ]
+}
