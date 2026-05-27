@@ -154,6 +154,66 @@
       ]
     },
     {
+      "id": "yogurt",
+      "emoji": "🥛",
+      "name": "그릭요거트",
+      "description": "전체 브랜드 통합 — 평소 대비 저렴",
+      "unit": "개",
+      "stale_days": 60,
+      "representative_brand_id": "ildong",
+      "verify_links": true,
+      "exclude": [
+        "메이커", "스타터", "식빵", "재료",
+        "발효기", "유청분리기", "거름망",
+        "크래미", "케이크"
+      ],
+      "ppu_min": 700,
+      "ppu_max": 10000,
+      "default": true,
+      "sub_brands": [
+        {
+          "id": "ildong",
+          "name": "일동후디스",
+          "search_queries": ["일동후디스 그릭", "후디스 그릭", "후디스 요거트", "일동 그릭"],
+          "require_any": ["일동", "후디스"],
+          "exclude": ["파예", "빙그레", "트웬티"],
+          "alert_pct": 80,
+          "min_samples": 3,
+          "outlier_iqr_k": 1.5
+        },
+        {
+          "id": "fage",
+          "name": "파예",
+          "search_queries": ["파예 그릭", "파예 요거트", "Fage 그릭", "파예 무지방"],
+          "require_any": ["파예", "fage"],
+          "exclude": ["일동", "후디스", "빙그레", "트웬티"],
+          "alert_pct": 80,
+          "min_samples": 3,
+          "outlier_iqr_k": 1.5
+        },
+        {
+          "id": "binggrae",
+          "name": "빙그레 그릭데이",
+          "search_queries": ["빙그레 그릭", "그릭데이", "빙그레 요거트"],
+          "require_any": ["빙그레", "그릭데이"],
+          "exclude": ["일동", "후디스", "파예", "트웬티"],
+          "alert_pct": 80,
+          "min_samples": 3,
+          "outlier_iqr_k": 1.5
+        },
+        {
+          "id": "twenty",
+          "name": "트웬티",
+          "search_queries": ["트웬티 그릭", "트웬티 요거트", "Twenty 그릭"],
+          "require_any": ["트웬티"],
+          "exclude": ["일동", "후디스", "파예", "빙그레"],
+          "alert_pct": 80,
+          "min_samples": 3,
+          "outlier_iqr_k": 1.5
+        }
+      ]
+    },
+    {
       "id": "myprotein",
       "emoji": "💪",
       "name": "마이프로틴",
