@@ -458,7 +458,7 @@ def keyword_section_html(kw: dict, parsed: list[dict], stats: dict, threshold: i
             body += '<h4>최근 게시물</h4>'
             for d in top:
                 body += deal_card_html(d, threshold)
-    return f"""<section class="keyword">
+    return f"""<section class="keyword" id="kw-{kw['id']}">
   <h2>{kw['emoji']} {kw['name']}</h2>
   <p class="kw-desc">{kw.get('description','')}</p>
   {body}
