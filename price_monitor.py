@@ -36,6 +36,7 @@ REPORT_FILE   = ROOT / "deals.html"
 CONFIG_FILE   = ROOT / "config.json"
 
 ALGUMON_SEARCH_URL = "https://www.algumon.com/n/deal?keyword={kw}"
+ALGUMON_DATA_URL   = "https://www.algumon.com/n/deal/__data.json?keyword={kw}"
 ALGUMON_DEAL_URL   = "https://www.algumon.com/n/deal/{id}"
 HEADERS = {
     "User-Agent": (
@@ -52,8 +53,9 @@ HEADERS = {
 # 알구몬 카드 파서 — 정규식 기반 (Svelte SSR HTML)
 # ─────────────────────────────────────────────
 
-# 카드를 deal-feed-card 단위로 분할. 클래스 hash가 변동 가능하므로 prefix만 매치.
-_CARD_SPLIT_RE = re.compile(r'class="deal-feed-card[^"]*"', re.IGNORECASE)
+# 알구몬은 카드 컨테이너로 deal-feed-card OR deal-row 두 클래스 사용 (UI 변종)
+# 둘 다 매치해야 전체 카드 잡힘
+_CARD_SPLIT_RE = re.compile(r'class="(?:deal-feed-card|deal-row)[^"]*"', re.IGNORECASE)
 # 카드 내 정보 추출 패턴
 _DEAL_ID_RE     = re.compile(r'/n/deal/(\d+)')
 _REDIRECT_RE    = re.compile(r'href="(https?://(?:www\.)?algumon\.com/l/d/\d+\?[^"]+)"')
@@ -151,28 +153,124 @@ def _age_to_datetime(m: re.Match) -> datetime:
     return now - delta
 
 
+def _resolve_ref(idx, pool: list, _stack: set | None = None):
+    """SvelteKit 참조 풀기. idx 가 int면 pool[idx] 를 재귀 해석. 순환 방지."""
+    if _stack is None:
+        _stack = set()
+    if not isinstance(idx, int):
+        return idx
+    if idx in _stack:
+        return None
+    _stack = _stack | {idx}
+    if idx < 0 or idx >= len(pool):
+        return None
+    val = pool[idx]
+    if isinstance(val, dict):
+        return {k: _resolve_ref(v, pool, _stack) for k, v in val.items()}
+    if isinstance(val, list):
+        return [_resolve_ref(v, pool, _stack) for v in val]
+    return val
+
+
+_PERPRICE_RE = re.compile(r'(\d{1,4})\s*[x×]\s*([\d,]+)\s*원')
+
+
+def _parse_deal_object(deal: dict) -> dict | None:
+    """SvelteKit 참조가 풀린 deal dict 에서 표준 카드 정보 추출."""
+    deal_id = deal.get("id")
+    if deal_id is None:
+        return None
+    deal_id = str(deal_id)
+    title = (deal.get("title") or "").strip()
+    if not title:
+        return None
+
+    # 가격 — price 필드 또는 perPriceText 에서 추출
+    price_text  = str(deal.get("price") or "")
+    per_text    = str(deal.get("perPriceText") or "")
+    # 총가
+    total_match = re.search(r'([\d,]+)\s*원', price_text)
+    total_price = int(total_match.group(1).replace(",", "")) if total_match else None
+    # 단가 "(N x M원)" — perPriceText 우선
+    qty, ppu = None, None
+    for src in (per_text, price_text):
+        m = _PERPRICE_RE.search(src)
+        if m:
+            qty = int(m.group(1))
+            ppu = int(m.group(2).replace(",", ""))
+            break
+
+    # 출처 / 쇼핑몰
+    source     = (deal.get("siteName") or "").strip()
+    store_name = (deal.get("storeName") or "").strip()
+
+    # URL — original 우선, cloak 없음
+    original_url = (deal.get("originalUrl") or "").strip()
+    detail_url   = ALGUMON_DEAL_URL.format(id=deal_id)
+
+    # 만료
+    ended = bool(deal.get("ended", False))
+
+    # 날짜 — createdAt 은 ISO 형식
+    age_dt = None
+    created = deal.get("createdAt")
+    if isinstance(created, str):
+        try:
+            # "2026-05-27T01:23:45.678Z" 또는 "...+09:00" 등
+            iso = created.rstrip("Z").split(".")[0]
+            age_dt = datetime.fromisoformat(iso)
+        except Exception:
+            age_dt = None
+
+    return {
+        "id":          deal_id,
+        "title":       title,
+        "url":         detail_url,
+        "external":    original_url or detail_url,
+        "source":      source,
+        "store":       store_name,
+        "total_price": total_price,
+        "quantity":    qty,
+        "price_per_unit": ppu,
+        "date":        age_dt,
+        "ended":       ended,
+    }
+
+
 def fetch_search(query: str, timeout: int = 15) -> list[dict]:
-    """알구몬 검색 결과에서 카드 리스트 반환 (단가/날짜/출처 포함)."""
-    url = ALGUMON_SEARCH_URL.format(kw=urllib.parse.quote(query.encode("utf-8")))
-    req = urllib.request.Request(url, headers=HEADERS)
+    """알구몬 JSON endpoint에서 검색 결과 추출 (HTML 보다 더 많은 deal + 만료 여부 포함)."""
+    url = ALGUMON_DATA_URL.format(kw=urllib.parse.quote(query.encode("utf-8")))
+    req = urllib.request.Request(url, headers={**HEADERS, "Accept": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
-            raw = resp.read()
+            data = json.loads(resp.read())
     except Exception as e:
         print(f"  [ERROR] '{query}' 검색 실패: {e}", flush=True)
         return []
-    html = raw.decode("utf-8", errors="replace")
 
-    # deal-feed-card 위치들로 분할
-    positions = [m.start() for m in _CARD_SPLIT_RE.finditer(html)]
-    if not positions:
+    # nodes[1].data 가 deal 풀
+    try:
+        pool = data["nodes"][1]["data"]
+    except (KeyError, IndexError, TypeError):
         return []
+    if not isinstance(pool, list):
+        return []
+
     cards: list[dict] = []
     seen_ids: set[str] = set()
-    for i, pos in enumerate(positions):
-        end = positions[i + 1] if i + 1 < len(positions) else min(pos + 15000, len(html))
-        card_html = html[pos:end]
-        info = _parse_card(card_html)
+    for item in pool:
+        # deal 객체 식별: storeName + price + title 필드를 가짐
+        if not isinstance(item, dict):
+            continue
+        if not all(k in item for k in ("storeName", "price", "title")):
+            continue
+        resolved = _resolve_ref(item, pool) if any(isinstance(v, int) for v in item.values()) else item
+        # 위 _resolve_ref 가 item dict 자체에 동작 안 함 (값들이 int 인덱스라는 가정)
+        # 다시: item의 각 필드 값(int 인덱스)을 풀어줌
+        deal: dict = {}
+        for k, v in item.items():
+            deal[k] = _resolve_ref(v, pool) if isinstance(v, int) else v
+        info = _parse_deal_object(deal)
         if info and info["id"] not in seen_ids:
             seen_ids.add(info["id"])
             cards.append(info)
@@ -510,7 +608,8 @@ def send_ntfy(topic: str, keyword: dict, hits: list[dict], threshold: int, repor
 def load_keywords() -> dict:
     if not KEYWORDS_FILE.exists():
         sys.exit(f"[FATAL] {KEYWORDS_FILE} 없음")
-    return json.loads(KEYWORDS_FILE.read_text(encoding="utf-8"))
+    # utf-8-sig 로 BOM 처리 (PowerShell이 추가한 경우 대비)
+    return json.loads(KEYWORDS_FILE.read_text(encoding="utf-8-sig"))
 
 
 def main():
@@ -565,6 +664,12 @@ def main():
                 print(f"  카드 → {len(cards)}건 (제외어 적용)", flush=True)
         if not require_any and not excludes:
             print(f"  카드 {len(cards)}건 수집", flush=True)
+
+        # 만료된 deal 제외 (알구몬이 ended=True 로 표시한 것)
+        before = len(cards)
+        cards = [c for c in cards if not c.get("ended", False)]
+        if len(cards) != before:
+            print(f"  만료 제외: {before} → {len(cards)}건", flush=True)
 
         # 날짜 필터 (stale_days 이내)
         cutoff = now - timedelta(days=stale_days)
