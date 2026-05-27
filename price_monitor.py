@@ -123,7 +123,7 @@ def _build_deal(deal: dict) -> dict | None:
         "title":          title,
         "url":            ALGUMON_DEAL_URL.format(id=deal_id),
         "external":       (deal.get("originalUrl") or "").strip() or ALGUMON_DEAL_URL.format(id=deal_id),
-        "source":         (deal.get("siteName")  or "").strip(),  # 뽐뿌/클리앙 등
+        "source":         (deal.get("siteName")  or "").strip(),  # 출처 커뮤니티 사이트명
         "store":          (deal.get("storeName") or "").strip(),  # 쇼핑몰 (CJ더마켓 등)
         "total_price":    total_price,
         "quantity":       qty,

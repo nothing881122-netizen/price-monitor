@@ -2,7 +2,7 @@
 
 알구몬 기반 키워드 핫딜 모니터 — GitHub Actions 로 KST 09~19시 매 2시간마다 자동 실행.
 
-- **데이터 소스**: algumon.com (뽐뿌·클리앙·어미새 등 통합)
+- **데이터 소스**: algumon.com (여러 핫딜 커뮤니티 통합)
 - **수집 방식**: SvelteKit `__data.json` endpoint (HTML 보다 데이터 풍부 + 만료 여부 포함)
 - **임계값 산출**: 키워드별 단가 통계 IQR outlier 제거 → P25 × alert_pct% 자동
 - **알림**: PWA Web Push (`push_notify.py` 모듈)
