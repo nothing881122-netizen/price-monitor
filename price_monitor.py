@@ -465,7 +465,45 @@ def keyword_section_html(kw: dict, parsed: list[dict], stats: dict, threshold: i
 </section>"""
 
 
-def generate_html(sections: list[str], checked_at: str) -> str:
+def reference_summary_html(rows: list[dict]) -> str:
+    """헤더 아래 종합 기준가 표 — 모든 키워드의 P25 / 임계값 한 눈에."""
+    if not rows:
+        return ""
+    tr_html = ""
+    for r in rows:
+        if r["n_clean"] >= r.get("min_samples", 6):
+            p25  = f'{r["p25"]:,}원'
+            thr  = f'{r["threshold"]:,}원'
+            note = f'샘플 {r["n_clean"]}건'
+        else:
+            p25  = "—"
+            thr  = "—"
+            note = f'<span class="ref-pending">샘플 {r["n_clean"]}/{r.get("min_samples",6)} 부족</span>'
+        anchor = f'#kw-{r["id"]}'
+        tr_html += f"""<tr>
+  <td><a href="{anchor}">{r['emoji']} {r['name']}</a></td>
+  <td class="ref-num">{p25}</td>
+  <td class="ref-num ref-thr">{thr}</td>
+  <td class="ref-note">{note}</td>
+</tr>"""
+    return f"""<section class="ref-section">
+  <h2 class="ref-title">📊 기준가 종합 (자체 산출)</h2>
+  <p class="ref-source">알구몬 검색 결과를 자체 분석한 값입니다. pricewagon 등 외부 기준가 사용 안 함 — 시장 변동에 자동 적응.</p>
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th>카테고리</th>
+        <th>P25 (시장 25% 구간)</th>
+        <th>알림 기준</th>
+        <th>상태</th>
+      </tr>
+    </thead>
+    <tbody>{tr_html}</tbody>
+  </table>
+</section>"""
+
+
+def generate_html(sections: list[str], checked_at: str, ref_rows: list[dict] | None = None) -> str:
     css = """
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#FAF7F2;color:#2C1810;min-height:100vh}
@@ -494,7 +532,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .btn{display:inline-block;color:#B0502C;text-decoration:none;font-size:12px;padding:5px 10px;border:1px solid #D0663C;border-radius:6px}
 .btn-primary{background:#D0663C;color:white;border:none}
 .footer{text-align:center;padding:24px 16px;font-size:12px;color:#B8986A}
+.ref-section{background:white;border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 1px 4px rgba(140,70,20,.08)}
+.ref-title{font-size:17px;font-weight:700;margin-bottom:6px;color:#7C4530}
+.ref-source{font-size:12px;color:#8B7355;background:#FAE2D4;border-left:3px solid #D0663C;border-radius:6px;padding:8px 10px;margin-bottom:12px;line-height:1.5}
+.ref-table{width:100%;border-collapse:collapse;background:#FFFCF8;border-radius:8px;overflow:hidden}
+.ref-table th{background:#FAE2D4;color:#7C4530;font-size:12px;padding:8px 10px;text-align:left;font-weight:600}
+.ref-table td{padding:8px 10px;font-size:13px;border-top:1px solid #FAF0E8}
+.ref-table a{color:#B0502C;text-decoration:none;font-weight:600}
+.ref-table a:hover{text-decoration:underline}
+.ref-num{text-align:right;font-variant-numeric:tabular-nums}
+.ref-thr{color:#B0502C;font-weight:700}
+.ref-note{font-size:12px;color:#8B7355}
+.ref-pending{color:#A89070;font-style:italic}
 """
+    ref_block = reference_summary_html(ref_rows or [])
     return f"""<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -509,9 +560,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <p class="subtitle">{checked_at} · 알구몬 통합 검색</p>
   </div>
   <div class="main">
+    {ref_block}
     {"".join(sections)}
   </div>
-  <div class="footer">알구몬 통합 핫딜 · 키워드별 P25 자동 산출</div>
+  <div class="footer">알구몬 통합 핫딜 · 키워드별 P25 자체 산출</div>
 </body>
 </html>"""
 
@@ -637,6 +689,7 @@ def main():
 
     seen = load_seen()
     sections: list[str] = []
+    ref_rows: list[dict] = []
     total_new_hits = 0
 
     for i, kw in enumerate(keywords):
@@ -709,6 +762,16 @@ def main():
             print(f"  샘플 부족 ({stats['n_clean']} < {kw.get('min_samples', 6)}) — 알림 보류", flush=True)
 
         sections.append(keyword_section_html(kw, cards, stats, threshold, hits))
+        ref_rows.append({
+            "id":          kid,
+            "emoji":       kw.get("emoji", ""),
+            "name":        kw.get("name", kid),
+            "unit":        kw.get("unit", "개"),
+            "p25":         stats["p25"],
+            "n_clean":     stats["n_clean"],
+            "min_samples": kw.get("min_samples", 6),
+            "threshold":   threshold,
+        })
 
         if hits:
             ntfy_ok = True
@@ -749,7 +812,7 @@ def main():
             time.sleep(delay)
 
     checked_at = now.strftime("%Y-%m-%d %H:%M")
-    html = generate_html(sections, checked_at)
+    html = generate_html(sections, checked_at, ref_rows=ref_rows)
     REPORT_FILE.write_text(html, encoding="utf-8")
     print(f"\n[HTML] 리포트 저장: {REPORT_FILE}", flush=True)
 
