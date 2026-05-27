@@ -333,10 +333,10 @@ def _keyword_section(kw: dict, deals: list[dict], stats: dict, threshold: int, h
     if stats["n_clean"] < min_samples:
         body = f'<p class="note">샘플 부족 ({stats["n_clean"]}건) — 통계 산출 보류</p>'
     else:
-        body  = (f'<p class="stats">P25 {stats["p25"]:,}원 · 중간값 {stats["median"]:,}원 · '
-                 f'최저 {stats["min"]:,}원 · 샘플 {stats["n_clean"]}/{stats["n_raw"]}건</p>')
+        body  = (f'<p class="stats">평소 가격 <b>{stats["p25"]:,}원</b> · '
+                 f'중간값 {stats["median"]:,}원 · 최저 {stats["min"]:,}원</p>')
         body += (f'<p class="threshold">알림 기준: <b>{threshold:,}원/{unit} 이하</b> '
-                 f'(P25의 {kw.get("alert_pct", 80)}%)</p>')
+                 f'(평소 가격의 {kw.get("alert_pct", 80)}%)</p>')
         if hits:
             body += f'<h4>🔥 기준 이하 ({len(hits)}건)</h4>'
             body += "".join(_deal_card(d, threshold) for d in hits)
@@ -370,7 +370,7 @@ def _summary_table(rows: list[dict]) -> str:
         # 카테고리는 rowspan=2 로 좌측 병합. 우측은 P25/알림기준 → 상태 의 2 row.
         tr_html += f"""<tr class="ref-row-main">
   <td rowspan="2" class="ref-cat"><a href="#kw-{r['id']}">{r['emoji']}<br>{r['name']}</a></td>
-  <td class="ref-num"><span class="ref-label">P25</span>{p25_s}</td>
+  <td class="ref-num"><span class="ref-label">평소 가격</span>{p25_s}</td>
   <td class="ref-num ref-thr"><span class="ref-label">알림 ≤</span>{thr_s}</td>
 </tr>
 <tr class="ref-row-sub">
