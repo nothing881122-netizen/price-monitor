@@ -43,6 +43,9 @@ CONFIG_FILE   = ROOT / "config.json"
 ALGUMON_DATA_URL = "https://www.algumon.com/n/deal/__data.json?keyword={kw}"
 ALGUMON_DEAL_URL = "https://www.algumon.com/n/deal/{id}"
 REPORT_BASE_URL  = "https://nothing881122-netizen.github.io/flight-deals/deals.html"
+SUPER_PAGE_URL   = "https://nothing881122-netizen.github.io/flight-deals/super-deals.html"
+SUPER_FILE       = Path(__file__).parent / "super-deals.html"
+DEFAULT_SUPER_ALERT_PCT = 60   # 평소 가격의 60% 이하면 "찐 특가"
 
 HEADERS = {
     "User-Agent": (
@@ -437,6 +440,127 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 """
 
 
+def render_super_html(super_items: list[dict], checked_at: str) -> str:
+    """찐 특가 전용 페이지. URL 의 ?id= 가 있으면 그 카드를 맨 위 강조."""
+    if not super_items:
+        body = """<div class="empty-card">
+  <div class="empty-emoji">😌</div>
+  <p class="empty-text">지금은 찐 특가가 없습니다</p>
+  <p class="empty-sub">평소 가격의 60% 이하인 진짜 핫딜이 발견되면 여기에 표시됩니다.</p>
+</div>"""
+    else:
+        cards = []
+        for s in super_items:
+            d = s["deal"]
+            kw = s["kw"]
+            brand = s["brand"]
+            ppu = d.get("price_per_unit") or 0
+            unit = kw.get("unit", "개")
+            p25 = s["p25"]
+            saved_pct = int((1 - ppu / p25) * 100) if p25 else 0
+            link = d.get("url") or d.get("external")
+            cards.append(f"""<article class="super-card" data-id="{d['id']}">
+  <div class="badge-row">
+    <span class="badge-emoji">🚨🔥⚡</span>
+    <span class="badge-text">역대급 찐 특가</span>
+    <span class="badge-pct">-{saved_pct}%</span>
+  </div>
+  <p class="kw-line">{kw['emoji']} {kw['name']}{' · ' + brand.get('brand_name', '') if brand.get('brand_name') and brand.get('brand_name') != kw['name'] else ''}</p>
+  <h2 class="title">{d['title'][:90]}</h2>
+  <div class="price-row">
+    <span class="big-price">{ppu:,}<span class="unit">원/{unit}</span></span>
+  </div>
+  <p class="compare">평소 <s>{p25:,}원</s> → 지금 <b>{ppu:,}원</b></p>
+  <a class="cta" href="{link}" target="_blank">🛒 지금 사러 가기 →</a>
+</article>""")
+        body = "\n".join(cards)
+
+    css = """
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:linear-gradient(180deg,#7A1A1A 0%,#2C0808 100%);color:white;min-height:100vh;padding-bottom:48px}
+.header{padding:48px 20px 20px;text-align:center}
+.header h1{font-size:28px;font-weight:900;text-shadow:0 2px 12px rgba(255,200,0,.4);animation:pulse 2s ease-in-out infinite}
+.subtitle{font-size:13px;opacity:.7;margin-top:8px}
+.main{max-width:600px;margin:0 auto;padding:16px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
+.super-card{background:linear-gradient(135deg,#FFE066 0%,#FF6B35 100%);color:#2C0808;border-radius:24px;padding:24px;margin-bottom:18px;box-shadow:0 12px 40px rgba(255,140,0,.4);position:relative;overflow:hidden;transition:transform .2s}
+.super-card.highlight{box-shadow:0 0 0 4px #FFD700, 0 12px 40px rgba(255,200,0,.6);transform:scale(1.02)}
+.badge-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.badge-emoji{font-size:24px}
+.badge-text{font-weight:900;font-size:14px;letter-spacing:.5px;background:#8B0000;color:white;padding:5px 12px;border-radius:14px}
+.badge-pct{font-size:22px;font-weight:900;color:#8B0000;margin-left:auto}
+.kw-line{font-size:14px;font-weight:600;color:#5C1A00;margin-bottom:6px}
+.title{font-size:17px;font-weight:700;line-height:1.4;margin-bottom:18px;color:#2C0808}
+.price-row{display:flex;align-items:baseline;margin-bottom:6px}
+.big-price{font-size:54px;font-weight:900;color:#8B0000;line-height:1;letter-spacing:-1px}
+.big-price .unit{font-size:18px;font-weight:600;margin-left:6px;color:#5C1A00}
+.compare{font-size:14px;color:#5C1A00;margin-bottom:18px}
+.compare s{opacity:.6}
+.compare b{color:#8B0000;font-size:16px}
+.cta{display:block;background:#2C0808;color:#FFE066;text-align:center;padding:16px;border-radius:14px;text-decoration:none;font-weight:800;font-size:16px;letter-spacing:.5px}
+.cta:active{background:#000}
+.empty-card{background:rgba(255,255,255,.08);border-radius:24px;padding:48px 24px;text-align:center;backdrop-filter:blur(10px)}
+.empty-emoji{font-size:48px;margin-bottom:14px}
+.empty-text{font-size:18px;font-weight:700;margin-bottom:8px}
+.empty-sub{font-size:13px;opacity:.7;line-height:1.5}
+.footer{text-align:center;padding:24px;font-size:11px;opacity:.5}
+"""
+
+    # 도착 즉시 자동 TTS — user gesture 한 번 (알림 탭) 후라 페이지 진입 시 허용됨
+    tts_script = """
+<script>
+(function(){
+  const params = new URLSearchParams(location.search);
+  const targetId = params.get('id');
+  // 강조 처리
+  if (targetId) {
+    document.querySelectorAll('.super-card').forEach(c => {
+      if (c.dataset.id === targetId) {
+        c.classList.add('highlight');
+        c.scrollIntoView({behavior:'smooth', block:'center'});
+      }
+    });
+  }
+  // TTS 자동 재생 (찐 특가 1건만)
+  const tts_card = document.querySelector('.super-card.highlight') || document.querySelector('.super-card');
+  if (tts_card && 'speechSynthesis' in window) {
+    const kw = tts_card.querySelector('.kw-line')?.textContent.trim() || '';
+    const price = tts_card.querySelector('.big-price')?.textContent.trim() || '';
+    const text = `찐 특가 발견! ${kw}, ${price}`;
+    setTimeout(() => {
+      try {
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'ko-KR';
+        u.rate = 1.05;
+        speechSynthesis.speak(u);
+      } catch(e){}
+    }, 400);
+  }
+})();
+</script>"""
+
+    return f"""<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>🚨 찐 특가</title>
+  <style>{css}</style>
+</head>
+<body>
+  <div class="header">
+    <h1>🚨🔥 찐 특가 🔥🚨</h1>
+    <p class="subtitle">{checked_at} · 평소 가격의 60% 이하만</p>
+  </div>
+  <div class="main">
+    {body}
+  </div>
+  <div class="footer">🚨 평소 가격 대비 -40% 이상 핫딜만 표시</div>
+  {tts_script}
+</body>
+</html>"""
+
+
 def render_html(sections: list[str], checked_at: str, summary_rows: list[dict]) -> str:
     return f"""<!DOCTYPE html>
 <html lang="ko">
@@ -586,6 +710,37 @@ def _filter_deals(deals: list[dict], kw: dict, now: datetime) -> list[dict]:
     return fresh
 
 
+def _send_super_push(kid: str, kw: dict, super_hits: list[dict]) -> bool:
+    """찐 특가 전용 푸시 — 화려한 본문 + 전용 페이지 deep link + 자동 음성용 플래그."""
+    if not send_push or not super_hits:
+        return True
+    unit = kw.get("unit", "개")
+    d0 = super_hits[0]
+    ppu = d0.get("price_per_unit") or 0
+    brand = d0.get("brand_name") or kw.get("name", "")
+    title = f"🚨🔥⚡ 찐 특가! {brand} {ppu:,}원/{unit}"
+    lines = ["⚡⚡⚡ 역대급 가격! ⚡⚡⚡"]
+    for d in super_hits[:3]:
+        p = d.get("price_per_unit") or 0
+        b = d.get("brand_name") or ""
+        b_s = f"[{b}] " if b and b != kw.get("name") else ""
+        lines.append(f"{b_s}{p:,}원/{unit} — {d['title'][:25]}")
+    body = "\n".join(lines)
+    # 알림 클릭 → 전용 페이지 (그 핫딜 강조)
+    first_id = super_hits[0]["id"]
+    super_url = f"{SUPER_PAGE_URL}?id={first_id}"
+    actions = [{"action": "view", "title": "🚨 찐 특가 보기", "url": super_url}]
+    try:
+        ok, fail = send_push(
+            "super", title, body, url=super_url, actions=actions,
+            require_interaction=True,
+        )
+        return (ok > 0) or (ok + fail == 0)
+    except Exception as e:
+        print(f"  [WARN] 찐 특가 push 예외: {e}", flush=True)
+        return False
+
+
 def _send_push_for_keyword(kid: str, kw: dict, hits: list[dict]) -> bool:
     """키워드별 PWA Web Push 발송. 성공 시 True. sub_brands 있으면 본문에 brand 라벨 포함."""
     if not send_push or not hits:
@@ -643,6 +798,7 @@ def main() -> None:
     seen = load_seen()
     sections: list[str] = []
     summary_rows: list[dict] = []
+    super_collect: list[dict] = []   # 찐 특가 전용 페이지용 — 모든 키워드의 super_hits 누적
     total_new = 0
 
     for i, kw in enumerate(keywords):
@@ -680,35 +836,62 @@ def main() -> None:
             stats = compute_stats(unit_prices, iqr_k=iqr_k)
             print(f"  단가 {len(unit_prices)}건, outlier 제거 후 {stats['n_clean']}건", flush=True)
 
+            super_pct = brand.get("super_alert_pct", DEFAULT_SUPER_ALERT_PCT)
             threshold = 0
+            super_threshold = 0
             hits: list[dict] = []
+            super_hits: list[dict] = []
             if stats["n_clean"] >= min_samples:
                 threshold = int(stats["p25"] * alert_pct / 100)
-                print(f"  P25={stats['p25']:,} → 임계값 {threshold:,}원/{unit}", flush=True)
-                hits = [d for d in deals
-                        if d.get("price_per_unit") and d["price_per_unit"] <= threshold and d["id"] not in seen]
-                print(f"  후보 핫딜 {len(hits)}건", flush=True)
-                if verify_links and hits:
-                    alive: list[dict] = []
-                    for d in hits:
-                        if verify_alive(d["url"]):
-                            alive.append(d)
-                        time.sleep(0.5)
-                    print(f"  링크 검증: {len(hits)} → {len(alive)}건 살아있음", flush=True)
-                    hits = alive
+                super_threshold = int(stats["p25"] * super_pct / 100)
+                print(f"  P25={stats['p25']:,} → 핫딜 ≤{threshold:,} · 찐특가 ≤{super_threshold:,}원/{unit}", flush=True)
+                candidates = [d for d in deals
+                              if d.get("price_per_unit") and d["price_per_unit"] <= threshold and d["id"] not in seen]
+                for d in candidates:
+                    d["is_super"] = d["price_per_unit"] <= super_threshold
+                    (super_hits if d["is_super"] else hits).append(d)
+                if super_hits:
+                    print(f"  🚨 찐 특가 {len(super_hits)}건 / 일반 핫딜 {len(hits)}건", flush=True)
+                else:
+                    print(f"  후보 핫딜 {len(hits)}건", flush=True)
+                if verify_links and (hits or super_hits):
+                    def filter_alive(lst):
+                        out = []
+                        for d in lst:
+                            if verify_alive(d["url"]):
+                                out.append(d)
+                            time.sleep(0.5)
+                        return out
+                    n_before = len(hits) + len(super_hits)
+                    hits = filter_alive(hits)
+                    super_hits = filter_alive(super_hits)
+                    n_after = len(hits) + len(super_hits)
+                    if n_after != n_before:
+                        print(f"  링크 검증: {n_before} → {n_after}건 살아있음", flush=True)
             else:
                 print(f"  샘플 부족 ({stats['n_clean']} < {min_samples}) — 알림 보류", flush=True)
 
             brand_results.append({
                 "brand": brand, "deals": deals, "stats": stats,
-                "threshold": threshold, "hits": hits,
+                "threshold": threshold, "super_threshold": super_threshold,
+                "hits": hits, "super_hits": super_hits,
             })
             all_hits.extend(hits)
+            all_hits.extend(super_hits)
 
             if len(brands) > 1:
                 time.sleep(0.5)  # brand 사이 짧은 delay
 
         sections.append(_keyword_section(kw, brand_results))
+
+        # super_hits 수집 (찐 특가 전용 페이지용)
+        for br in brand_results:
+            for d in br.get("super_hits", []):
+                super_collect.append({
+                    "kw": kw, "brand": br["brand"], "deal": d,
+                    "threshold": br["threshold"], "super_threshold": br["super_threshold"],
+                    "p25": br["stats"]["p25"],
+                })
 
         # 종합표 — sub_brands 있으면 가장 잘 산출된 brand 기준, 없으면 단일 brand
         best_br = max(brand_results, key=lambda r: r["stats"]["n_clean"]) if brand_results else None
@@ -722,13 +905,22 @@ def main() -> None:
                 "has_brands": len(brands) > 1,
             })
 
-        # 알림 — 키워드 단위 통합 (brand 마다 sub-section 표시)
+        # 알림 분리 — 찐 특가는 별도 강조 push, 일반은 기존 방식
+        super_in_kw = [d for d in all_hits if d.get("is_super")]
+        regular_in_kw = [d for d in all_hits if not d.get("is_super")]
+        push_ok_all = True
+        if super_in_kw:
+            ok = _send_super_push(kid, kw, super_in_kw)
+            push_ok_all = push_ok_all and ok
+        if regular_in_kw:
+            ok = _send_push_for_keyword(kid, kw, regular_in_kw)
+            push_ok_all = push_ok_all and ok
         if all_hits:
-            if _send_push_for_keyword(kid, kw, all_hits):
+            if push_ok_all:
                 seen.update(d["id"] for d in all_hits)
                 total_new += len(all_hits)
             else:
-                print("  [WARN] PWA push 실패 — seen 미갱신, 다음 실행에서 재시도", flush=True)
+                print("  [WARN] 일부 push 실패 — seen 미갱신, 다음 실행에서 재시도", flush=True)
 
         if i < len(keywords) - 1:
             time.sleep(inter_delay)
@@ -738,10 +930,17 @@ def main() -> None:
     REPORT_FILE.write_text(html, encoding="utf-8")
     print(f"\n[HTML] 리포트 저장: {REPORT_FILE}", flush=True)
 
+    # 찐 특가 전용 페이지
+    super_html = render_super_html(super_collect, checked_at)
+    SUPER_FILE.write_text(super_html, encoding="utf-8")
+    print(f"[HTML] 찐 특가 페이지: {SUPER_FILE}", flush=True)
+
     if gh_token and gh_owner and gh_repo:
         try:
             url = deploy_to_github(html, gh_token, gh_owner, gh_repo, gh_path)
             print(f"[URL] {url}", flush=True)
+            url2 = deploy_to_github(super_html, gh_token, gh_owner, gh_repo, "super-deals.html")
+            print(f"[URL] {url2}", flush=True)
         except Exception as e:
             print(f"[ERROR] GitHub 배포 실패: {e}", flush=True)
 
