@@ -342,7 +342,10 @@ def _keyword_section(kw: dict, deals: list[dict], stats: dict, threshold: int, h
             body += "".join(_deal_card(d, threshold) for d in hits)
         else:
             body += '<p class="note">현재 기준 이하 게시물 없음</p>'
-        top = [d for d in deals if d.get("price_per_unit")][:5]
+        # 최근 게시물 — 30일 이내 + 가격 파싱된 것만 (최대 5건)
+        cutoff = datetime.now() - timedelta(days=30)
+        top = [d for d in deals
+               if d.get("price_per_unit") and d.get("date") and d["date"] >= cutoff][:5]
         if top:
             body += '<h4>최근 게시물</h4>'
             body += "".join(_deal_card(d, threshold) for d in top)
@@ -371,8 +374,8 @@ def _summary_table(rows: list[dict]) -> str:
   <td class="ref-num ref-thr"><span class="ref-label">대박 기준</span>{thr_s}</td>
 </tr>"""
     return f"""<section class="ref-section">
-  <h2 class="ref-title">📊 기준가 종합 (자체 산출)</h2>
-  <p class="ref-source">알구몬 검색 결과를 자체 분석한 값입니다. pricewagon 등 외부 기준가 사용 안 함 — 시장 변동에 자동 적응.</p>
+  <h2 class="ref-title">📊 기준가 종합</h2>
+  <p class="ref-source">시장 가격을 자동 추적해 평소보다 싸진 순간 알려드립니다.</p>
   <table class="ref-table">
     <tbody>{tr_html}</tbody>
   </table>
