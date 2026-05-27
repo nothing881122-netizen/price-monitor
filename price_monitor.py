@@ -325,33 +325,41 @@ def _deal_card(deal: dict, threshold: int) -> str:
 </div>"""
 
 
-def _keyword_section(kw: dict, deals: list[dict], stats: dict, threshold: int, hits: list[dict]) -> str:
-    min_samples = kw.get("min_samples", 6)
-    unit = kw.get("unit", "개")
+def _brand_block_html(brand: dict, deals: list[dict], stats: dict, threshold: int, hits: list[dict], show_brand_header: bool) -> str:
+    """단일 brand 의 통계 + 핫딜 + 최근 게시물 블록."""
+    min_samples = brand.get("min_samples", 6)
+    unit = brand.get("unit", "개")
+    brand_header = f'<h3 class="brand-name">{brand.get("brand_name") or brand.get("name")}</h3>' if show_brand_header else ''
     if stats["n_clean"] < min_samples:
         body = '<p class="note">데이터를 모으는 중입니다</p>'
     else:
         body  = (f'<p class="stats">평소 가격 <b>{stats["p25"]:,}원</b> · '
                  f'중간값 {stats["median"]:,}원 · 최저 {stats["min"]:,}원</p>')
         body += (f'<p class="threshold">대박 기준: <b>{threshold:,}원/{unit} 이하</b> '
-                 f'(평소 가격의 {kw.get("alert_pct", 80)}%)</p>')
+                 f'(평소 가격의 {brand.get("alert_pct", 80)}%)</p>')
         if hits:
             body += f'<h4>🔥 기준 이하 ({len(hits)}건)</h4>'
             body += "".join(_deal_card(d, threshold) for d in hits)
-        else:
-            body += '<p class="note">현재 기준 이하 게시물 없음</p>'
         # 최근 게시물 — 30일 이내 + 가격 파싱된 것만 (최대 2건)
-        # TODO: 향후 keywords.json 의 recent_count 옵션 (0/2/5)으로 키워드별 조정
         cutoff = datetime.now() - timedelta(days=30)
         top = [d for d in deals
                if d.get("price_per_unit") and d.get("date") and d["date"] >= cutoff][:2]
         if top:
             body += '<h4>최근 게시물</h4>'
             body += "".join(_deal_card(d, threshold) for d in top)
+    return f'<div class="brand-block">{brand_header}{body}</div>'
+
+
+def _keyword_section(kw: dict, brand_results: list[dict]) -> str:
+    """키워드 섹션 — sub_brands 있으면 brand별 sub-block 나열."""
+    has_brands = bool(kw.get("sub_brands"))
+    blocks = []
+    for r in brand_results:
+        blocks.append(_brand_block_html(r["brand"], r["deals"], r["stats"], r["threshold"], r["hits"], show_brand_header=has_brands))
     return f"""<section class="keyword" id="kw-{kw['id']}">
   <h2>{kw['emoji']} {kw['name']}</h2>
   <p class="kw-desc">{kw.get('description', '')}</p>
-  {body}
+  {"".join(blocks)}
 </section>"""
 
 
@@ -409,6 +417,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .btn{display:inline-block;color:#B0502C;text-decoration:none;font-size:12px;padding:5px 10px;border:1px solid #D0663C;border-radius:6px}
 .btn-primary{background:#D0663C;color:white;border:none}
 .footer{text-align:center;padding:24px 16px;font-size:12px;color:#B8986A}
+.brand-block{margin-bottom:14px;padding-bottom:8px;border-bottom:1px dashed #F0E5D6}
+.brand-block:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.brand-name{font-size:15px;font-weight:700;color:#7C4530;margin:10px 0 6px;background:#FAE2D4;padding:4px 10px;border-radius:6px;display:inline-block}
 .ref-section{background:white;border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 1px 4px rgba(140,70,20,.08)}
 .ref-title{font-size:17px;font-weight:700;margin-bottom:6px;color:#7C4530}
 .ref-source{font-size:12px;color:#8B7355;background:#FAE2D4;border-left:3px solid #D0663C;border-radius:6px;padding:8px 10px;margin-bottom:12px;line-height:1.5}
@@ -518,6 +529,24 @@ def _dedup_cross_source(deals: list[dict]) -> list[dict]:
     return list(seen.values()) + others
 
 
+def _resolve_brands(kw: dict) -> list[dict]:
+    """sub_brands 있으면 각 brand 를 독립 처리 단위로. 없으면 kw 자체를 단일 brand로."""
+    if not kw.get("sub_brands"):
+        return [kw]
+    brands = []
+    parent_excludes = list(kw.get("exclude", []))
+    for sb in kw["sub_brands"]:
+        merged = {**kw, **sb}  # sb 가 우선
+        merged.pop("sub_brands", None)
+        # exclude 는 부모 + 자식 결합
+        merged["exclude"] = parent_excludes + list(sb.get("exclude", []))
+        # brand 의 id 는 키워드 id 와 합쳐서 unique
+        merged["brand_id"] = sb.get("id", "")
+        merged["brand_name"] = sb.get("name", sb.get("id", ""))
+        brands.append(merged)
+    return brands
+
+
 def _filter_deals(deals: list[dict], kw: dict, now: datetime) -> list[dict]:
     """키워드 설정에 따라 deals 필터링 (require_any / exclude / 만료 / 날짜 / 중복)."""
     require_any = [t.lower() for t in kw.get("require_any", [])]
@@ -558,7 +587,7 @@ def _filter_deals(deals: list[dict], kw: dict, now: datetime) -> list[dict]:
 
 
 def _send_push_for_keyword(kid: str, kw: dict, hits: list[dict]) -> bool:
-    """키워드별 PWA Web Push 발송. 성공 시 True."""
+    """키워드별 PWA Web Push 발송. 성공 시 True. sub_brands 있으면 본문에 brand 라벨 포함."""
     if not send_push or not hits:
         return True
     unit = kw.get("unit", "개")
@@ -568,9 +597,11 @@ def _send_push_for_keyword(kid: str, kw: dict, hits: list[dict]) -> bool:
         if d.get("price_per_unit"):
             age = humanize_age(d.get("date"))
             src = d.get("source") or ""
+            brand = d.get("brand_name") or ""
             age_s = f" · {age}" if age else ""
             src_s = f" · {src}" if src else ""
-            body_lines.append(f"{d['price_per_unit']:,}원/{unit}{age_s}{src_s} — {d['title'][:30]}")
+            brand_s = f"[{brand}] " if brand and brand != kw.get("name") else ""
+            body_lines.append(f"{brand_s}{d['price_per_unit']:,}원/{unit}{age_s}{src_s} — {d['title'][:25]}")
     body = "\n".join(body_lines) or "새 핫딜"
 
     actions = []
@@ -616,60 +647,86 @@ def main() -> None:
 
     for i, kw in enumerate(keywords):
         kid = kw["id"]
-        queries = kw.get("search_queries") or [kw.get("search_query", "")]
-        queries = [q for q in queries if q]
-        single_item = kw.get("single_item", False)
-        ppu_min = kw.get("ppu_min", DEFAULT_PPU_MIN)
-        ppu_max = kw.get("ppu_max", DEFAULT_PPU_MAX)
-        min_samples = kw.get("min_samples", 6)
-        alert_pct = kw.get("alert_pct", 80)
-        iqr_k = kw.get("outlier_iqr_k", 1.5)
-        verify_links = kw.get("verify_links", True)
-        unit = kw.get("unit", "개")
+        print(f"\n[{kid}] {kw.get('name', kid)} ...", flush=True)
+        brands = _resolve_brands(kw)
+        brand_results: list[dict] = []   # 각 brand 의 {brand, deals, stats, threshold, hits}
+        all_hits: list[dict] = []        # 키워드 단위 통합 hits (알림용)
 
-        print(f"\n[{kid}] 검색어 {queries}...", flush=True)
-        deals = fetch_search_multi(queries, timeout=timeout, delay=1.0)[:max_posts]
-        deals = _filter_deals(deals, kw, now)
+        for brand in brands:
+            bid = brand.get("brand_id") or kid
+            bname = brand.get("brand_name") or brand.get("name", kid)
+            queries = brand.get("search_queries") or [brand.get("search_query", "")]
+            queries = [q for q in queries if q]
+            single_item = brand.get("single_item", False)
+            ppu_min = brand.get("ppu_min", DEFAULT_PPU_MIN)
+            ppu_max = brand.get("ppu_max", DEFAULT_PPU_MAX)
+            min_samples = brand.get("min_samples", 6)
+            alert_pct = brand.get("alert_pct", 80)
+            iqr_k = brand.get("outlier_iqr_k", 1.5)
+            verify_links = brand.get("verify_links", True)
+            unit = brand.get("unit", "개")
 
-        # sanity / unit 부여
-        for d in deals:
-            apply_sanity(d, single_item=single_item, ppu_min=ppu_min, ppu_max=ppu_max)
-            d["unit"] = unit
+            label = f"  ↳ {bname}" if len(brands) > 1 else ""
+            if label:
+                print(label, flush=True)
+            deals = fetch_search_multi(queries, timeout=timeout, delay=1.0)[:max_posts]
+            deals = _filter_deals(deals, brand, now)
+            for d in deals:
+                apply_sanity(d, single_item=single_item, ppu_min=ppu_min, ppu_max=ppu_max)
+                d["unit"] = unit
+                d["brand_name"] = bname
 
-        unit_prices = [d["price_per_unit"] for d in deals if d.get("price_per_unit")]
-        stats = compute_stats(unit_prices, iqr_k=iqr_k)
-        print(f"  단가 {len(unit_prices)}건, outlier 제거 후 {stats['n_clean']}건", flush=True)
+            unit_prices = [d["price_per_unit"] for d in deals if d.get("price_per_unit")]
+            stats = compute_stats(unit_prices, iqr_k=iqr_k)
+            print(f"  단가 {len(unit_prices)}건, outlier 제거 후 {stats['n_clean']}건", flush=True)
 
-        threshold = 0
-        hits: list[dict] = []
-        if stats["n_clean"] >= min_samples:
-            threshold = int(stats["p25"] * alert_pct / 100)
-            print(f"  P25={stats['p25']:,} → 임계값 {threshold:,}원/{unit}", flush=True)
-            hits = [d for d in deals
-                    if d.get("price_per_unit") and d["price_per_unit"] <= threshold and d["id"] not in seen]
-            print(f"  후보 핫딜 {len(hits)}건", flush=True)
-            if verify_links and hits:
-                alive: list[dict] = []
-                for d in hits:
-                    if verify_alive(d["url"]):
-                        alive.append(d)
-                    time.sleep(0.5)
-                print(f"  링크 검증: {len(hits)} → {len(alive)}건 살아있음", flush=True)
-                hits = alive
-        else:
-            print(f"  샘플 부족 ({stats['n_clean']} < {min_samples}) — 알림 보류", flush=True)
+            threshold = 0
+            hits: list[dict] = []
+            if stats["n_clean"] >= min_samples:
+                threshold = int(stats["p25"] * alert_pct / 100)
+                print(f"  P25={stats['p25']:,} → 임계값 {threshold:,}원/{unit}", flush=True)
+                hits = [d for d in deals
+                        if d.get("price_per_unit") and d["price_per_unit"] <= threshold and d["id"] not in seen]
+                print(f"  후보 핫딜 {len(hits)}건", flush=True)
+                if verify_links and hits:
+                    alive: list[dict] = []
+                    for d in hits:
+                        if verify_alive(d["url"]):
+                            alive.append(d)
+                        time.sleep(0.5)
+                    print(f"  링크 검증: {len(hits)} → {len(alive)}건 살아있음", flush=True)
+                    hits = alive
+            else:
+                print(f"  샘플 부족 ({stats['n_clean']} < {min_samples}) — 알림 보류", flush=True)
 
-        sections.append(_keyword_section(kw, deals, stats, threshold, hits))
-        summary_rows.append({
-            "id": kid, "emoji": kw.get("emoji", ""), "name": kw.get("name", kid),
-            "p25": stats["p25"], "n_clean": stats["n_clean"],
-            "min_samples": min_samples, "threshold": threshold,
-        })
+            brand_results.append({
+                "brand": brand, "deals": deals, "stats": stats,
+                "threshold": threshold, "hits": hits,
+            })
+            all_hits.extend(hits)
 
-        if hits:
-            if _send_push_for_keyword(kid, kw, hits):
-                seen.update(d["id"] for d in hits)
-                total_new += len(hits)
+            if len(brands) > 1:
+                time.sleep(0.5)  # brand 사이 짧은 delay
+
+        sections.append(_keyword_section(kw, brand_results))
+
+        # 종합표 — sub_brands 있으면 가장 잘 산출된 brand 기준, 없으면 단일 brand
+        best_br = max(brand_results, key=lambda r: r["stats"]["n_clean"]) if brand_results else None
+        if best_br:
+            summary_rows.append({
+                "id": kid, "emoji": kw.get("emoji", ""), "name": kw.get("name", kid),
+                "p25": best_br["stats"]["p25"],
+                "n_clean": best_br["stats"]["n_clean"],
+                "min_samples": best_br["brand"].get("min_samples", 6),
+                "threshold": best_br["threshold"],
+                "has_brands": len(brands) > 1,
+            })
+
+        # 알림 — 키워드 단위 통합 (brand 마다 sub-section 표시)
+        if all_hits:
+            if _send_push_for_keyword(kid, kw, all_hits):
+                seen.update(d["id"] for d in all_hits)
+                total_new += len(all_hits)
             else:
                 print("  [WARN] PWA push 실패 — seen 미갱신, 다음 실행에서 재시도", flush=True)
 

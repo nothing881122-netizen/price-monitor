@@ -26,9 +26,10 @@
       "id": "tuna",
       "emoji": "🐟",
       "name": "참치캔",
-      "description": "참치캔 단위 평균보다 저렴",
-      "search_queries": ["참치"],
-      "require_any": ["참치"],
+      "description": "동원·사조·한성·오뚜기 브랜드별 평균 대비 저렴",
+      "unit": "캔",
+      "stale_days": 60,
+      "verify_links": true,
       "exclude": [
         "고양이", "냥이", "강아지", "댕댕이",
         "사료", "간식", "주식캔", "습식",
@@ -37,13 +38,49 @@
         "샘물", "생수",
         "참치 외", "골라담기"
       ],
-      "unit": "캔",
-      "alert_pct": 80,
-      "min_samples": 4,
-      "outlier_iqr_k": 1.5,
-      "stale_days": 60,
-      "verify_links": true,
-      "default": true
+      "default": true,
+      "sub_brands": [
+        {
+          "id": "dongwon",
+          "name": "동원",
+          "search_queries": ["동원참치", "동원 참치", "동원 살코기", "동원 라이트"],
+          "require_any": ["동원"],
+          "exclude": ["사조", "한성", "오뚜기"],
+          "alert_pct": 80,
+          "min_samples": 3,
+          "outlier_iqr_k": 1.5
+        },
+        {
+          "id": "sajo",
+          "name": "사조",
+          "search_queries": ["사조참치", "사조 살코기", "사조 안심"],
+          "require_any": ["사조"],
+          "exclude": ["동원", "한성", "오뚜기"],
+          "alert_pct": 80,
+          "min_samples": 3,
+          "outlier_iqr_k": 1.5
+        },
+        {
+          "id": "hansung",
+          "name": "한성",
+          "search_queries": ["한성참치", "한성 참치"],
+          "require_any": ["한성"],
+          "exclude": ["동원", "사조", "오뚜기"],
+          "alert_pct": 80,
+          "min_samples": 3,
+          "outlier_iqr_k": 1.5
+        },
+        {
+          "id": "ottogi",
+          "name": "오뚜기",
+          "search_queries": ["오뚜기참치", "오뚜기 참치"],
+          "require_any": ["오뚜기"],
+          "exclude": ["동원", "사조", "한성"],
+          "alert_pct": 80,
+          "min_samples": 3,
+          "outlier_iqr_k": 1.5
+        }
+      ]
     },
     {
       "id": "rice",
