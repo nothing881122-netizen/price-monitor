@@ -358,9 +358,10 @@ def _keyword_section(kw: dict, brand_results: list[dict]) -> str:
         stats = rep["stats"]
         threshold = rep["threshold"]
         rep_name = rep["brand"].get("brand_name", "") or rep["brand"].get("name", "")
-        rep_note = f' <small class="rep-note">({rep_name} 기준)</small>' if has_brands and rep_name and rep_name != kw["name"] else ""
-        body  = (f'<p class="stats">평소 가격 <b>{stats["p25"]:,}원</b>{rep_note} · '
+        body  = (f'<p class="stats">평소 가격 <b>{stats["p25"]:,}원</b> · '
                  f'중간값 {stats["median"]:,}원 · 최저 {stats["min"]:,}원</p>')
+        if has_brands and rep_name and rep_name != kw["name"]:
+            body += f'<p class="rep-note">📌 {rep_name} 기준</p>'
         body += (f'<p class="threshold">대박 기준: <b>{threshold:,}원/{unit} 이하</b></p>')
 
     # 모든 brand 의 hits + super_hits 통합 — 가격 낮은 순 정렬
@@ -451,7 +452,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .btn{display:inline-block;color:#B0502C;text-decoration:none;font-size:12px;padding:5px 10px;border:1px solid #D0663C;border-radius:6px}
 .btn-primary{background:#D0663C;color:white;border:none}
 .footer{text-align:center;padding:24px 16px;font-size:12px;color:#B8986A}
-.rep-note{font-size:11px;color:#A89070;font-weight:400}
+.rep-note{font-size:11px;color:#A89070;font-weight:500;margin-top:-4px;margin-bottom:8px}
 .ref-section{background:white;border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 1px 4px rgba(140,70,20,.08)}
 .ref-title{font-size:17px;font-weight:700;margin-bottom:6px;color:#7C4530}
 .ref-source{font-size:12px;color:#8B7355;background:#FAE2D4;border-left:3px solid #D0663C;border-radius:6px;padding:8px 10px;margin-bottom:12px;line-height:1.5}
