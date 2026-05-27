@@ -354,7 +354,7 @@ def _keyword_section(kw: dict, deals: list[dict], stats: dict, threshold: int, h
 
 
 def _summary_table(rows: list[dict]) -> str:
-    """헤더 아래 종합 기준가 표."""
+    """헤더 아래 종합 기준가 표 — 카테고리당 2 row, 3 컬럼 (모바일 가독성)."""
     if not rows:
         return ""
     tr_html = ""
@@ -367,17 +367,19 @@ def _summary_table(rows: list[dict]) -> str:
         else:
             p25_s = thr_s = "—"
             note_s = f'<span class="ref-pending">샘플 {r["n_clean"]}/{min_samples} 부족</span>'
-        tr_html += f"""<tr>
-  <td><a href="#kw-{r['id']}">{r['emoji']} {r['name']}</a></td>
-  <td class="ref-num">{p25_s}</td>
-  <td class="ref-num ref-thr">{thr_s}</td>
-  <td class="ref-note">{note_s}</td>
+        # 카테고리는 rowspan=2 로 좌측 병합. 우측은 P25/알림기준 → 상태 의 2 row.
+        tr_html += f"""<tr class="ref-row-main">
+  <td rowspan="2" class="ref-cat"><a href="#kw-{r['id']}">{r['emoji']}<br>{r['name']}</a></td>
+  <td class="ref-num"><span class="ref-label">P25</span>{p25_s}</td>
+  <td class="ref-num ref-thr"><span class="ref-label">알림 ≤</span>{thr_s}</td>
+</tr>
+<tr class="ref-row-sub">
+  <td colspan="2" class="ref-note">{note_s}</td>
 </tr>"""
     return f"""<section class="ref-section">
   <h2 class="ref-title">📊 기준가 종합 (자체 산출)</h2>
   <p class="ref-source">알구몬 검색 결과를 자체 분석한 값입니다. pricewagon 등 외부 기준가 사용 안 함 — 시장 변동에 자동 적응.</p>
   <table class="ref-table">
-    <thead><tr><th>카테고리</th><th>P25 (시장 25%)</th><th>알림 기준</th><th>상태</th></tr></thead>
     <tbody>{tr_html}</tbody>
   </table>
 </section>"""
@@ -414,14 +416,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .ref-section{background:white;border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 1px 4px rgba(140,70,20,.08)}
 .ref-title{font-size:17px;font-weight:700;margin-bottom:6px;color:#7C4530}
 .ref-source{font-size:12px;color:#8B7355;background:#FAE2D4;border-left:3px solid #D0663C;border-radius:6px;padding:8px 10px;margin-bottom:12px;line-height:1.5}
-.ref-table{width:100%;border-collapse:collapse;background:#FFFCF8;border-radius:8px;overflow:hidden}
-.ref-table th{background:#FAE2D4;color:#7C4530;font-size:12px;padding:8px 10px;text-align:left;font-weight:600}
-.ref-table td{padding:8px 10px;font-size:13px;border-top:1px solid #FAF0E8}
-.ref-table a{color:#B0502C;text-decoration:none;font-weight:600}
-.ref-table a:hover{text-decoration:underline}
-.ref-num{text-align:right;font-variant-numeric:tabular-nums}
-.ref-thr{color:#B0502C;font-weight:700}
-.ref-note{font-size:12px;color:#8B7355}
+.ref-table{width:100%;border-collapse:collapse;background:#FFFCF8;border-radius:8px;overflow:hidden;table-layout:fixed}
+.ref-table td{padding:8px 8px;font-size:13px;vertical-align:middle}
+.ref-row-main td{border-top:1px solid #FAF0E8;padding-top:10px}
+.ref-row-sub td{padding-top:0;padding-bottom:10px}
+.ref-cat{width:36%;text-align:center;background:#FAE2D4;border-radius:6px 0 0 6px}
+.ref-cat a{color:#B0502C;text-decoration:none;font-weight:700;font-size:13px;line-height:1.3;display:inline-block}
+.ref-cat a:hover{text-decoration:underline}
+.ref-num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.ref-label{display:block;font-size:10px;font-weight:500;color:#A89070;letter-spacing:0.5px;margin-bottom:2px}
+.ref-thr{color:#B0502C}
+.ref-thr .ref-label{color:#D0663C}
+.ref-note{font-size:11px;color:#8B7355;text-align:right;padding-top:0}
 .ref-pending{color:#A89070;font-style:italic}
 """
 
