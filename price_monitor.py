@@ -328,41 +328,72 @@ def _deal_card(deal: dict, threshold: int) -> str:
 </div>"""
 
 
-def _brand_block_html(brand: dict, deals: list[dict], stats: dict, threshold: int, hits: list[dict], show_brand_header: bool) -> str:
-    """단일 brand 의 통계 + 핫딜 + 최근 게시물 블록."""
-    min_samples = brand.get("min_samples", 6)
-    unit = brand.get("unit", "개")
-    brand_header = f'<h3 class="brand-name">{brand.get("brand_name") or brand.get("name")}</h3>' if show_brand_header else ''
-    if stats["n_clean"] < min_samples:
-        body = '<p class="note">데이터를 모으는 중입니다</p>'
-    else:
-        body  = (f'<p class="stats">평소 가격 <b>{stats["p25"]:,}원</b> · '
-                 f'중간값 {stats["median"]:,}원 · 최저 {stats["min"]:,}원</p>')
-        body += (f'<p class="threshold">대박 기준: <b>{threshold:,}원/{unit} 이하</b> '
-                 f'(평소 가격의 {brand.get("alert_pct", 80)}%)</p>')
-        if hits:
-            body += f'<h4>🔥 기준 이하 ({len(hits)}건)</h4>'
-            body += "".join(_deal_card(d, threshold) for d in hits)
-        # 최근 게시물 — 30일 이내 + 가격 파싱된 것만 (최대 2건)
-        cutoff = datetime.now() - timedelta(days=30)
-        top = [d for d in deals
-               if d.get("price_per_unit") and d.get("date") and d["date"] >= cutoff][:2]
-        if top:
-            body += '<h4>최근 게시물</h4>'
-            body += "".join(_deal_card(d, threshold) for d in top)
-    return f'<div class="brand-block">{brand_header}{body}</div>'
+def _pick_representative(kw: dict, brand_results: list[dict]) -> dict | None:
+    """대표 brand 선택 — representative_brand_id 명시 우선, 없으면 표본 가장 많은 brand."""
+    if not brand_results:
+        return None
+    rep_id = kw.get("representative_brand_id")
+    if rep_id:
+        for br in brand_results:
+            if br["brand"].get("brand_id") == rep_id:
+                return br
+    # fallback: 통계 산출된 것 중 표본 가장 많은 brand
+    valid = [br for br in brand_results
+             if br["stats"]["n_clean"] >= br["brand"].get("min_samples", 6)]
+    if valid:
+        return max(valid, key=lambda r: r["stats"]["n_clean"])
+    return max(brand_results, key=lambda r: r["stats"]["n_clean"])
 
 
 def _keyword_section(kw: dict, brand_results: list[dict]) -> str:
-    """키워드 섹션 — sub_brands 있으면 brand별 sub-block 나열."""
+    """키워드 섹션 — UI는 통합 (대표 brand 기준 stats + 모든 brand 의 hits/recent 통합)."""
     has_brands = bool(kw.get("sub_brands"))
-    blocks = []
-    for r in brand_results:
-        blocks.append(_brand_block_html(r["brand"], r["deals"], r["stats"], r["threshold"], r["hits"], show_brand_header=has_brands))
+    rep = _pick_representative(kw, brand_results)
+    unit = kw.get("unit", "개")
+
+    # 대표 brand 의 stats / threshold 표시
+    if rep is None or rep["stats"]["n_clean"] < rep["brand"].get("min_samples", 6):
+        body = '<p class="note">데이터를 모으는 중입니다</p>'
+    else:
+        stats = rep["stats"]
+        threshold = rep["threshold"]
+        rep_name = rep["brand"].get("brand_name", "") or rep["brand"].get("name", "")
+        rep_note = f' <small class="rep-note">({rep_name} 기준)</small>' if has_brands and rep_name and rep_name != kw["name"] else ""
+        body  = (f'<p class="stats">평소 가격 <b>{stats["p25"]:,}원</b>{rep_note} · '
+                 f'중간값 {stats["median"]:,}원 · 최저 {stats["min"]:,}원</p>')
+        body += (f'<p class="threshold">대박 기준: <b>{threshold:,}원/{unit} 이하</b></p>')
+
+    # 모든 brand 의 hits + super_hits 통합 — 가격 낮은 순 정렬
+    all_hits = []
+    for br in brand_results:
+        all_hits.extend(br.get("hits", []))
+        all_hits.extend(br.get("super_hits", []))
+    all_hits.sort(key=lambda d: d.get("price_per_unit") or 9_999_999)
+    if all_hits:
+        # 대표 threshold (없으면 0) 로 카드 배지 표시 — 카드 내 자체 threshold 비교는 본 brand 기준
+        body += f'<h4>🔥 핫딜 ({len(all_hits)}건)</h4>'
+        body += "".join(_deal_card(d, d.get("_brand_threshold", 0)) for d in all_hits)
+
+    # 모든 brand 의 최근 게시물 (30일 이내) 통합 — 시간순, 최대 2건
+    cutoff = datetime.now() - timedelta(days=30)
+    all_recent = []
+    for br in brand_results:
+        for d in br["deals"]:
+            if d.get("price_per_unit") and d.get("date") and d["date"] >= cutoff:
+                all_recent.append(d)
+    # 핫딜로 이미 표시된 ID 제외
+    hit_ids = {d["id"] for d in all_hits}
+    all_recent = [d for d in all_recent if d["id"] not in hit_ids]
+    all_recent.sort(key=lambda d: d["date"], reverse=True)
+    top = all_recent[:2]
+    if top:
+        body += '<h4>최근 게시물</h4>'
+        body += "".join(_deal_card(d, d.get("_brand_threshold", 0)) for d in top)
+
     return f"""<section class="keyword" id="kw-{kw['id']}">
   <h2>{kw['emoji']} {kw['name']}</h2>
   <p class="kw-desc">{kw.get('description', '')}</p>
-  {"".join(blocks)}
+  {body}
 </section>"""
 
 
@@ -420,9 +451,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .btn{display:inline-block;color:#B0502C;text-decoration:none;font-size:12px;padding:5px 10px;border:1px solid #D0663C;border-radius:6px}
 .btn-primary{background:#D0663C;color:white;border:none}
 .footer{text-align:center;padding:24px 16px;font-size:12px;color:#B8986A}
-.brand-block{margin-bottom:14px;padding-bottom:8px;border-bottom:1px dashed #F0E5D6}
-.brand-block:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
-.brand-name{font-size:15px;font-weight:700;color:#7C4530;margin:10px 0 6px;background:#FAE2D4;padding:4px 10px;border-radius:6px;display:inline-block}
+.rep-note{font-size:11px;color:#A89070;font-weight:400}
 .ref-section{background:white;border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 1px 4px rgba(140,70,20,.08)}
 .ref-title{font-size:17px;font-weight:700;margin-bottom:6px;color:#7C4530}
 .ref-source{font-size:12px;color:#8B7355;background:#FAE2D4;border-left:3px solid #D0663C;border-radius:6px;padding:8px 10px;margin-bottom:12px;line-height:1.5}
@@ -841,9 +870,14 @@ def main() -> None:
             super_threshold = 0
             hits: list[dict] = []
             super_hits: list[dict] = []
+            # 모든 deal 에 본 brand 의 threshold 기록 (UI 통합 시 카드 배지 표시용)
+            for d in deals:
+                d["_brand_threshold"] = 0
             if stats["n_clean"] >= min_samples:
                 threshold = int(stats["p25"] * alert_pct / 100)
                 super_threshold = int(stats["p25"] * super_pct / 100)
+                for d in deals:
+                    d["_brand_threshold"] = threshold
                 print(f"  P25={stats['p25']:,} → 핫딜 ≤{threshold:,} · 찐특가 ≤{super_threshold:,}원/{unit}", flush=True)
                 candidates = [d for d in deals
                               if d.get("price_per_unit") and d["price_per_unit"] <= threshold and d["id"] not in seen]
