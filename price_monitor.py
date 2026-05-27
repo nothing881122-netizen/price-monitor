@@ -398,19 +398,38 @@ def _keyword_section(kw: dict, brand_results: list[dict]) -> str:
 </section>"""
 
 
-def _summary_table(rows: list[dict]) -> str:
-    """헤더 아래 종합 기준가 표 — 한 카테고리 = 한 줄, 3 컬럼."""
+def _summary_table(rows: list[dict], categories: list[dict] | None = None) -> str:
+    """헤더 아래 종합 기준가 표 — 카테고리별 그룹 헤더 + 키워드 행, 3 컬럼."""
     if not rows:
         return ""
-    tr_html = ""
+    # 카테고리별 그룹핑
+    by_cat: dict[str, list[dict]] = {}
     for r in rows:
-        min_samples = r.get("min_samples", 6)
-        if r["n_clean"] >= min_samples:
-            p25_s = f'{r["p25"]:,}원'
-            thr_s = f'{r["threshold"]:,}원'
-        else:
-            p25_s = thr_s = "—"
-        tr_html += f"""<tr>
+        cid = r.get("category") or "other"
+        by_cat.setdefault(cid, []).append(r)
+    cat_map = {c["id"]: c for c in (categories or [])}
+    cat_order = [c["id"] for c in (categories or [])]
+    for cid in by_cat:
+        if cid not in cat_order:
+            cat_order.append(cid)
+
+    tr_html = ""
+    for cid in cat_order:
+        rs = by_cat.get(cid)
+        if not rs:
+            continue
+        meta = cat_map.get(cid)
+        if meta and meta.get("name"):
+            tr_html += (f'<tr class="ref-cat-header" data-cat="{cid}">'
+                        f'<td colspan="3">{meta.get("emoji","")} {meta["name"]}</td></tr>')
+        for r in rs:
+            min_samples = r.get("min_samples", 6)
+            if r["n_clean"] >= min_samples:
+                p25_s = f'{r["p25"]:,}원'
+                thr_s = f'{r["threshold"]:,}원'
+            else:
+                p25_s = thr_s = "—"
+            tr_html += f"""<tr data-cat="{cid}">
   <td class="ref-cat"><a href="#kw-{r['id']}">{r['emoji']}<br>{r['name']}</a></td>
   <td class="ref-num"><span class="ref-label">평소 가격</span>{p25_s}</td>
   <td class="ref-num ref-thr"><span class="ref-label">대박 기준</span>{thr_s}</td>
@@ -467,6 +486,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .ref-label{display:block;font-size:10px;font-weight:500;color:#A89070;letter-spacing:0.5px;margin-bottom:2px}
 .ref-thr{color:#B0502C}
 .ref-thr .ref-label{color:#D0663C}
+.cat-divider{font-size:14px;font-weight:700;color:#7C4530;background:#FAE2D4;padding:10px 14px;border-radius:10px;margin:18px 0 10px;letter-spacing:0.3px}
+.cat-divider:first-child{margin-top:0}
+.ref-cat-header td{background:#FAE2D4 !important;color:#7C4530;font-weight:700;font-size:13px;padding:8px 10px;border-radius:8px !important;text-align:center;letter-spacing:0.3px}
 """
 
 
@@ -612,17 +634,69 @@ _TOGGLE_SYNC_SCRIPT = """
   });
   // 종합표 row 숨김
   document.querySelectorAll('.ref-table tbody tr').forEach(tr => {
+    if (tr.classList.contains('ref-cat-header')) return;
     const a = tr.querySelector('a[href^="#kw-"]');
     if (!a) return;
     const id = a.getAttribute('href').replace('#kw-', '');
     if (prefs[id] === false) tr.style.display = 'none';
+  });
+  // 빈 카테고리 divider 도 숨김 (해당 카테고리 키워드가 전부 OFF 인 경우)
+  const dividers = [...document.querySelectorAll('.cat-divider')];
+  dividers.forEach((div, idx) => {
+    const next = dividers[idx + 1] || null;
+    let n = div.nextElementSibling;
+    let visible = 0;
+    while (n && n !== next) {
+      if (n.classList && n.classList.contains('keyword') && n.style.display !== 'none') visible++;
+      n = n.nextElementSibling;
+    }
+    if (visible === 0) div.style.display = 'none';
+  });
+  // 종합표 카테고리 헤더도 같은 방식
+  const catHeaders = [...document.querySelectorAll('.ref-cat-header')];
+  catHeaders.forEach((h, idx) => {
+    const next = catHeaders[idx + 1] || null;
+    let n = h.nextElementSibling;
+    let visible = 0;
+    while (n && n !== next) {
+      if (n.tagName === 'TR' && !n.classList.contains('ref-cat-header') && n.style.display !== 'none') visible++;
+      n = n.nextElementSibling;
+    }
+    if (visible === 0) h.style.display = 'none';
   });
 })();
 </script>
 """
 
 
-def render_html(sections: list[str], checked_at: str, summary_rows: list[dict]) -> str:
+def render_html(sections: list[dict], checked_at: str, summary_rows: list[dict],
+                categories: list[dict] | None = None) -> str:
+    # 카테고리별 그룹핑 — sections 는 {category, id, html} 형태의 dict 리스트
+    by_cat: dict[str, list[dict]] = {}
+    for s in sections:
+        cid = s.get("category") or "other"
+        by_cat.setdefault(cid, []).append(s)
+    cat_map = {c["id"]: c for c in (categories or [])}
+    cat_order = [c["id"] for c in (categories or [])]
+    for cid in by_cat:
+        if cid not in cat_order:
+            cat_order.append(cid)
+
+    body_parts: list[str] = []
+    for cid in cat_order:
+        ss = by_cat.get(cid)
+        if not ss:
+            continue
+        meta = cat_map.get(cid)
+        if meta and meta.get("name"):
+            body_parts.append(
+                f'<h2 class="cat-divider" data-cat="{cid}">'
+                f'{meta.get("emoji","")} {meta["name"]}</h2>'
+            )
+        for s in ss:
+            body_parts.append(s["html"])
+    sections_html = "".join(body_parts)
+
     return f"""<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -637,8 +711,8 @@ def render_html(sections: list[str], checked_at: str, summary_rows: list[dict]) 
     <p class="subtitle">{checked_at} · 알구몬 통합 검색</p>
   </div>
   <div class="main">
-    {_summary_table(summary_rows)}
-    {"".join(sections)}
+    {_summary_table(summary_rows, categories)}
+    {sections_html}
   </div>
   <div class="footer">알구몬 통합 핫딜 · 키워드별 P25 자체 산출</div>
   {_TOGGLE_SYNC_SCRIPT}
@@ -858,7 +932,8 @@ def main() -> None:
     print(f"\n[{now.strftime('%Y-%m-%d %H:%M')}] 알구몬 키워드 모니터 시작 — {len(keywords)} 키워드", flush=True)
 
     seen = load_seen()
-    sections: list[str] = []
+    categories = cfg_data.get("categories", [])
+    sections: list[dict] = []
     summary_rows: list[dict] = []
     super_collect: list[dict] = []   # 찐 특가 전용 페이지용 — 모든 키워드의 super_hits 누적
     total_new = 0
@@ -949,7 +1024,11 @@ def main() -> None:
             if len(brands) > 1:
                 time.sleep(0.5)  # brand 사이 짧은 delay
 
-        sections.append(_keyword_section(kw, brand_results))
+        sections.append({
+            "category": kw.get("category", "other"),
+            "id": kid,
+            "html": _keyword_section(kw, brand_results),
+        })
 
         # super_hits 수집 (찐 특가 전용 페이지용)
         for br in brand_results:
@@ -965,6 +1044,7 @@ def main() -> None:
         if best_br:
             summary_rows.append({
                 "id": kid, "emoji": kw.get("emoji", ""), "name": kw.get("name", kid),
+                "category": kw.get("category", "other"),
                 "p25": best_br["stats"]["p25"],
                 "n_clean": best_br["stats"]["n_clean"],
                 "min_samples": best_br["brand"].get("min_samples", 6),
@@ -993,7 +1073,7 @@ def main() -> None:
             time.sleep(inter_delay)
 
     checked_at = now.strftime("%Y-%m-%d %H:%M")
-    html = render_html(sections, checked_at, summary_rows)
+    html = render_html(sections, checked_at, summary_rows, categories)
     REPORT_FILE.write_text(html, encoding="utf-8")
     print(f"\n[HTML] 리포트 저장: {REPORT_FILE}", flush=True)
 

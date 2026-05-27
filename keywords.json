@@ -1,10 +1,27 @@
 {
-  "version": 6,
+  "version": 7,
   "scan_settings": {
     "max_posts_per_keyword": 50,
     "request_timeout_sec": 15,
     "delay_between_keywords_sec": 1.5
   },
+  "categories": [
+    {
+      "id": "food",
+      "name": "식품",
+      "emoji": "🍴"
+    },
+    {
+      "id": "electronics",
+      "name": "가전",
+      "emoji": "💻"
+    },
+    {
+      "id": "travel",
+      "name": "여행",
+      "emoji": "✈️"
+    }
+  ],
   "keywords": [
     {
       "id": "spam",
@@ -15,15 +32,36 @@
       "stale_days": 60,
       "representative_brand_id": "spam_classic",
       "verify_links": true,
-      "exclude": ["햇반", "리챔", "비비고", "왕교자", "딤섬", "냥이", "고양이", "크래미"],
+      "exclude": [
+        "햇반",
+        "리챔",
+        "비비고",
+        "왕교자",
+        "딤섬",
+        "냥이",
+        "고양이",
+        "크래미"
+      ],
       "default": true,
       "sub_brands": [
         {
           "id": "spam_classic",
           "name": "클래식",
-          "search_queries": ["스팸 클래식", "스팸 200g", "스팸 340g", "스팸 200그램", "스팸 340그램"],
-          "require_any": ["스팸"],
-          "exclude": ["라이트", "light", "120g"],
+          "search_queries": [
+            "스팸 클래식",
+            "스팸 200g",
+            "스팸 340g",
+            "스팸 200그램",
+            "스팸 340그램"
+          ],
+          "require_any": [
+            "스팸"
+          ],
+          "exclude": [
+            "라이트",
+            "light",
+            "120g"
+          ],
           "alert_pct": 80,
           "min_samples": 3,
           "outlier_iqr_k": 1.5
@@ -31,14 +69,30 @@
         {
           "id": "spam_light",
           "name": "라이트",
-          "search_queries": ["스팸 라이트", "스팸 light", "스팸 120g"],
-          "require_any": ["라이트", "light", "120g"],
-          "exclude": ["클래식", "200g", "340g", "200그램", "340그램", "닭가슴살"],
+          "search_queries": [
+            "스팸 라이트",
+            "스팸 light",
+            "스팸 120g"
+          ],
+          "require_any": [
+            "라이트",
+            "light",
+            "120g"
+          ],
+          "exclude": [
+            "클래식",
+            "200g",
+            "340g",
+            "200그램",
+            "340그램",
+            "닭가슴살"
+          ],
           "alert_pct": 80,
           "min_samples": 3,
           "outlier_iqr_k": 1.5
         }
-      ]
+      ],
+      "category": "food"
     },
     {
       "id": "tuna",
@@ -50,21 +104,47 @@
       "representative_brand_id": "dongwon",
       "verify_links": true,
       "exclude": [
-        "고양이", "냥이", "강아지", "댕댕이",
-        "사료", "간식", "주식캔", "습식",
-        "주먹밥", "오뚜기밥", "햇반",
-        "통그릴", "비엔나", "왕만두", "딤섬", "리챔",
-        "샘물", "생수", "크래미",
-        "참치 외", "골라담기"
+        "고양이",
+        "냥이",
+        "강아지",
+        "댕댕이",
+        "사료",
+        "간식",
+        "주식캔",
+        "습식",
+        "주먹밥",
+        "오뚜기밥",
+        "햇반",
+        "통그릴",
+        "비엔나",
+        "왕만두",
+        "딤섬",
+        "리챔",
+        "샘물",
+        "생수",
+        "크래미",
+        "참치 외",
+        "골라담기"
       ],
       "default": true,
       "sub_brands": [
         {
           "id": "dongwon",
           "name": "동원",
-          "search_queries": ["동원참치", "동원 참치", "동원 살코기", "동원 라이트"],
-          "require_any": ["동원"],
-          "exclude": ["사조", "한성", "오뚜기"],
+          "search_queries": [
+            "동원참치",
+            "동원 참치",
+            "동원 살코기",
+            "동원 라이트"
+          ],
+          "require_any": [
+            "동원"
+          ],
+          "exclude": [
+            "사조",
+            "한성",
+            "오뚜기"
+          ],
           "alert_pct": 80,
           "min_samples": 3,
           "outlier_iqr_k": 1.5
@@ -72,9 +152,19 @@
         {
           "id": "sajo",
           "name": "사조",
-          "search_queries": ["사조참치", "사조 살코기", "사조 안심"],
-          "require_any": ["사조"],
-          "exclude": ["동원", "한성", "오뚜기"],
+          "search_queries": [
+            "사조참치",
+            "사조 살코기",
+            "사조 안심"
+          ],
+          "require_any": [
+            "사조"
+          ],
+          "exclude": [
+            "동원",
+            "한성",
+            "오뚜기"
+          ],
           "alert_pct": 80,
           "min_samples": 3,
           "outlier_iqr_k": 1.5
@@ -82,9 +172,18 @@
         {
           "id": "hansung",
           "name": "한성",
-          "search_queries": ["한성참치", "한성 참치"],
-          "require_any": ["한성"],
-          "exclude": ["동원", "사조", "오뚜기"],
+          "search_queries": [
+            "한성참치",
+            "한성 참치"
+          ],
+          "require_any": [
+            "한성"
+          ],
+          "exclude": [
+            "동원",
+            "사조",
+            "오뚜기"
+          ],
           "alert_pct": 80,
           "min_samples": 3,
           "outlier_iqr_k": 1.5
@@ -92,27 +191,53 @@
         {
           "id": "ottogi",
           "name": "오뚜기",
-          "search_queries": ["오뚜기참치", "오뚜기 참치"],
-          "require_any": ["오뚜기"],
-          "exclude": ["동원", "사조", "한성"],
+          "search_queries": [
+            "오뚜기참치",
+            "오뚜기 참치"
+          ],
+          "require_any": [
+            "오뚜기"
+          ],
+          "exclude": [
+            "동원",
+            "사조",
+            "한성"
+          ],
           "alert_pct": 80,
           "min_samples": 3,
           "outlier_iqr_k": 1.5
         }
-      ]
+      ],
+      "category": "food"
     },
     {
       "id": "rice",
       "emoji": "🍚",
       "name": "고시히카리 10kg",
       "description": "고시히카리 10kg 한 포대 기준",
-      "search_queries": ["고시히카리"],
-      "require_any": ["10kg", "10 kg"],
+      "search_queries": [
+        "고시히카리"
+      ],
+      "require_any": [
+        "10kg",
+        "10 kg"
+      ],
       "exclude": [
-        "즉석밥", "햇반", "오뚜기밥",
-        "20kg", "20 kg", "골라담기",
-        "2개", "3개", "5개", "10개", "박스", "묶음",
-        "외 ", " 외", "크래미"
+        "즉석밥",
+        "햇반",
+        "오뚜기밥",
+        "20kg",
+        "20 kg",
+        "골라담기",
+        "2개",
+        "3개",
+        "5개",
+        "10개",
+        "박스",
+        "묶음",
+        "외 ",
+        " 외",
+        "크래미"
       ],
       "unit": "포대",
       "single_item": true,
@@ -123,7 +248,8 @@
       "outlier_iqr_k": 1.5,
       "stale_days": 90,
       "verify_links": true,
-      "default": true
+      "default": true,
+      "category": "food"
     },
     {
       "id": "granola",
@@ -134,7 +260,13 @@
       "stale_days": 60,
       "representative_brand_id": "kellogg",
       "verify_links": true,
-      "exclude": ["쿠키", "음료", "드링크", "초코바", "크래미"],
+      "exclude": [
+        "쿠키",
+        "음료",
+        "드링크",
+        "초코바",
+        "크래미"
+      ],
       "ppu_min": 1000,
       "ppu_max": 20000,
       "default": true,
@@ -142,9 +274,21 @@
         {
           "id": "kellogg",
           "name": "켈로그",
-          "search_queries": ["켈로그 그래놀라", "Kellogg 그래놀라", "크렌베리 아몬드 그래놀라", "리얼 그래놀라"],
-          "require_any": ["켈로그", "kellogg"],
-          "exclude": ["동서", "포스트", "산과들에"],
+          "search_queries": [
+            "켈로그 그래놀라",
+            "Kellogg 그래놀라",
+            "크렌베리 아몬드 그래놀라",
+            "리얼 그래놀라"
+          ],
+          "require_any": [
+            "켈로그",
+            "kellogg"
+          ],
+          "exclude": [
+            "동서",
+            "포스트",
+            "산과들에"
+          ],
           "alert_pct": 80,
           "min_samples": 3,
           "outlier_iqr_k": 1.5
@@ -152,9 +296,19 @@
         {
           "id": "dongseo",
           "name": "동서",
-          "search_queries": ["동서 그래놀라", "동서 초코 그래놀라", "동서식품 그래놀라"],
-          "require_any": ["동서"],
-          "exclude": ["켈로그", "포스트", "산과들에"],
+          "search_queries": [
+            "동서 그래놀라",
+            "동서 초코 그래놀라",
+            "동서식품 그래놀라"
+          ],
+          "require_any": [
+            "동서"
+          ],
+          "exclude": [
+            "켈로그",
+            "포스트",
+            "산과들에"
+          ],
           "alert_pct": 80,
           "min_samples": 3,
           "outlier_iqr_k": 1.5
@@ -162,14 +316,26 @@
         {
           "id": "sangwadulae",
           "name": "산과들에",
-          "search_queries": ["산과들에 그래놀라", "산과들에"],
-          "require_any": ["산과들에"],
-          "exclude": ["켈로그", "동서", "포스트", "바 ", "초코바"],
+          "search_queries": [
+            "산과들에 그래놀라",
+            "산과들에"
+          ],
+          "require_any": [
+            "산과들에"
+          ],
+          "exclude": [
+            "켈로그",
+            "동서",
+            "포스트",
+            "바 ",
+            "초코바"
+          ],
           "alert_pct": 80,
           "min_samples": 3,
           "outlier_iqr_k": 1.5
         }
-      ]
+      ],
+      "category": "food"
     },
     {
       "id": "yogurt",
@@ -181,15 +347,35 @@
       "representative_brand_id": "ildong",
       "verify_links": true,
       "exclude": [
-        "메이커", "스타터", "식빵", "재료",
-        "발효기", "유청분리기", "거름망",
-        "크래미", "케이크",
-        "프로틴", "하이뮨", "단백질",
-        "유산균", "비타민", "영양제", "츄어블", "캡슐",
-        "흑염소", "밀크시슬", "루테인", "마가목",
-        "마스크", "트리트먼트", "샴푸",
-        "펫", "사료",
-        "닥터트웬티", "더키움", "비오비타"
+        "메이커",
+        "스타터",
+        "식빵",
+        "재료",
+        "발효기",
+        "유청분리기",
+        "거름망",
+        "크래미",
+        "케이크",
+        "프로틴",
+        "하이뮨",
+        "단백질",
+        "유산균",
+        "비타민",
+        "영양제",
+        "츄어블",
+        "캡슐",
+        "흑염소",
+        "밀크시슬",
+        "루테인",
+        "마가목",
+        "마스크",
+        "트리트먼트",
+        "샴푸",
+        "펫",
+        "사료",
+        "닥터트웬티",
+        "더키움",
+        "비오비타"
       ],
       "ppu_min": 700,
       "ppu_max": 10000,
@@ -198,9 +384,21 @@
         {
           "id": "ildong",
           "name": "일동후디스",
-          "search_queries": ["일동후디스 그릭", "후디스 그릭", "후디스 요거트", "일동 그릭"],
-          "require_any": ["일동", "후디스"],
-          "exclude": ["파예", "빙그레", "트웬티"],
+          "search_queries": [
+            "일동후디스 그릭",
+            "후디스 그릭",
+            "후디스 요거트",
+            "일동 그릭"
+          ],
+          "require_any": [
+            "일동",
+            "후디스"
+          ],
+          "exclude": [
+            "파예",
+            "빙그레",
+            "트웬티"
+          ],
           "alert_pct": 80,
           "min_samples": 3,
           "outlier_iqr_k": 1.5
@@ -208,9 +406,22 @@
         {
           "id": "fage",
           "name": "파예",
-          "search_queries": ["파예 그릭", "파예 요거트", "Fage 그릭", "파예 무지방"],
-          "require_any": ["파예", "fage"],
-          "exclude": ["일동", "후디스", "빙그레", "트웬티"],
+          "search_queries": [
+            "파예 그릭",
+            "파예 요거트",
+            "Fage 그릭",
+            "파예 무지방"
+          ],
+          "require_any": [
+            "파예",
+            "fage"
+          ],
+          "exclude": [
+            "일동",
+            "후디스",
+            "빙그레",
+            "트웬티"
+          ],
           "alert_pct": 80,
           "min_samples": 3,
           "outlier_iqr_k": 1.5
@@ -218,9 +429,21 @@
         {
           "id": "binggrae",
           "name": "빙그레 그릭데이",
-          "search_queries": ["빙그레 그릭", "그릭데이", "빙그레 요거트"],
-          "require_any": ["빙그레", "그릭데이"],
-          "exclude": ["일동", "후디스", "파예", "트웬티"],
+          "search_queries": [
+            "빙그레 그릭",
+            "그릭데이",
+            "빙그레 요거트"
+          ],
+          "require_any": [
+            "빙그레",
+            "그릭데이"
+          ],
+          "exclude": [
+            "일동",
+            "후디스",
+            "파예",
+            "트웬티"
+          ],
           "alert_pct": 80,
           "min_samples": 3,
           "outlier_iqr_k": 1.5
@@ -228,23 +451,53 @@
         {
           "id": "twenty",
           "name": "트웬티",
-          "search_queries": ["트웬티 그릭", "트웬티 요거트", "Twenty 그릭"],
-          "require_any": ["트웬티"],
-          "exclude": ["일동", "후디스", "파예", "빙그레"],
+          "search_queries": [
+            "트웬티 그릭",
+            "트웬티 요거트",
+            "Twenty 그릭"
+          ],
+          "require_any": [
+            "트웬티"
+          ],
+          "exclude": [
+            "일동",
+            "후디스",
+            "파예",
+            "빙그레"
+          ],
           "alert_pct": 80,
           "min_samples": 3,
           "outlier_iqr_k": 1.5
         }
-      ]
+      ],
+      "category": "food"
     },
     {
       "id": "myprotein",
       "emoji": "💪",
       "name": "마이프로틴",
       "description": "임팩트 웨이 WPC/WPI 등",
-      "search_queries": ["마이프로틴", "Myprotein", "임팩트웨이", "Impact Whey"],
-      "require_any": ["마이프로틴", "myprotein", "임팩트"],
-      "exclude": ["쉐이크", "쉐이크&바", "버라이어티", "맛보기", "드링크", "바 ", "쿠키", "크래미"],
+      "search_queries": [
+        "마이프로틴",
+        "Myprotein",
+        "임팩트웨이",
+        "Impact Whey"
+      ],
+      "require_any": [
+        "마이프로틴",
+        "myprotein",
+        "임팩트"
+      ],
+      "exclude": [
+        "쉐이크",
+        "쉐이크&바",
+        "버라이어티",
+        "맛보기",
+        "드링크",
+        "바 ",
+        "쿠키",
+        "크래미"
+      ],
       "unit": "개",
       "single_item": true,
       "ppu_min": 50000,
@@ -254,16 +507,26 @@
       "outlier_iqr_k": 1.5,
       "stale_days": 180,
       "verify_links": true,
-      "default": true
+      "default": true,
+      "category": "food"
     },
     {
       "id": "forerunner570",
       "emoji": "⌚",
       "name": "가민 포러너 570",
       "description": "역대 최저가 알림",
-      "search_queries": ["포러너 570", "Forerunner 570", "포러너570"],
-      "require_any": ["570"],
-      "exclude": ["575", "5700"],
+      "search_queries": [
+        "포러너 570",
+        "Forerunner 570",
+        "포러너570"
+      ],
+      "require_any": [
+        "570"
+      ],
+      "exclude": [
+        "575",
+        "5700"
+      ],
       "unit": "개",
       "single_item": true,
       "ppu_min": 200000,
@@ -273,7 +536,8 @@
       "outlier_iqr_k": 1.5,
       "stale_days": 180,
       "verify_links": true,
-      "default": true
+      "default": true,
+      "category": "electronics"
     },
     {
       "id": "mxmaster",
@@ -284,15 +548,35 @@
       "stale_days": 180,
       "representative_brand_id": "mxmaster4",
       "verify_links": true,
-      "exclude": ["anywhere", "mechanical"],
+      "exclude": [
+        "anywhere",
+        "mechanical"
+      ],
       "default": true,
       "sub_brands": [
         {
           "id": "mxmaster3",
           "name": "Master 3 / 3S",
-          "search_queries": ["MX Master 3", "MX마스터3", "MX Master3", "MX 마스터 3", "Master 3S", "마스터 3S"],
-          "require_any": ["master 3", "마스터 3", "master3", "마스터3"],
-          "exclude": ["master 4", "마스터 4", "master4", "마스터4"],
+          "search_queries": [
+            "MX Master 3",
+            "MX마스터3",
+            "MX Master3",
+            "MX 마스터 3",
+            "Master 3S",
+            "마스터 3S"
+          ],
+          "require_any": [
+            "master 3",
+            "마스터 3",
+            "master3",
+            "마스터3"
+          ],
+          "exclude": [
+            "master 4",
+            "마스터 4",
+            "master4",
+            "마스터4"
+          ],
           "single_item": true,
           "ppu_min": 30000,
           "ppu_max": 200000,
@@ -303,9 +587,24 @@
         {
           "id": "mxmaster4",
           "name": "Master 4",
-          "search_queries": ["MX Master 4", "MX마스터4", "MX Master4", "MX 마스터 4"],
-          "require_any": ["master 4", "마스터 4", "master4", "마스터4"],
-          "exclude": ["master 3", "마스터 3", "master3", "마스터3"],
+          "search_queries": [
+            "MX Master 4",
+            "MX마스터4",
+            "MX Master4",
+            "MX 마스터 4"
+          ],
+          "require_any": [
+            "master 4",
+            "마스터 4",
+            "master4",
+            "마스터4"
+          ],
+          "exclude": [
+            "master 3",
+            "마스터 3",
+            "master3",
+            "마스터3"
+          ],
           "single_item": true,
           "ppu_min": 80000,
           "ppu_max": 250000,
@@ -313,7 +612,8 @@
           "min_samples": 3,
           "outlier_iqr_k": 1.5
         }
-      ]
+      ],
+      "category": "electronics"
     },
     {
       "id": "buds4pro",
@@ -324,15 +624,40 @@
       "stale_days": 180,
       "representative_brand_id": "buds4_pro",
       "verify_links": true,
-      "exclude": ["케이스", "스킨", "스트랩", "버즈3", "buds3", "버즈2", "buds2", "버즈 라이브", "버즈 fe", "버즈 라이트"],
+      "exclude": [
+        "케이스",
+        "스킨",
+        "스트랩",
+        "버즈3",
+        "buds3",
+        "버즈2",
+        "buds2",
+        "버즈 라이브",
+        "버즈 fe",
+        "버즈 라이트"
+      ],
       "default": true,
       "sub_brands": [
         {
           "id": "buds4_pro",
           "name": "버즈4 프로",
-          "search_queries": ["버즈4 프로", "버즈4프로", "Buds4 Pro", "Galaxy Buds4 Pro", "갤럭시 버즈4 프로"],
-          "require_any": ["버즈4", "buds4"],
-          "exclude": ["일반", "R540", "버즈3", "buds3"],
+          "search_queries": [
+            "버즈4 프로",
+            "버즈4프로",
+            "Buds4 Pro",
+            "Galaxy Buds4 Pro",
+            "갤럭시 버즈4 프로"
+          ],
+          "require_any": [
+            "버즈4",
+            "buds4"
+          ],
+          "exclude": [
+            "일반",
+            "R540",
+            "버즈3",
+            "buds3"
+          ],
           "single_item": true,
           "ppu_min": 150000,
           "ppu_max": 500000,
@@ -343,9 +668,25 @@
         {
           "id": "buds4_normal",
           "name": "버즈4 일반",
-          "search_queries": ["갤럭시 버즈4", "Galaxy Buds4", "버즈4 블랙", "버즈4 R540"],
-          "require_any": ["버즈4", "buds4"],
-          "exclude": ["프로", "pro ", "pro,", "pro)", "프로,", "프로)", "R640"],
+          "search_queries": [
+            "갤럭시 버즈4",
+            "Galaxy Buds4",
+            "버즈4 블랙",
+            "버즈4 R540"
+          ],
+          "require_any": [
+            "버즈4",
+            "buds4"
+          ],
+          "exclude": [
+            "프로",
+            "pro ",
+            "pro,",
+            "pro)",
+            "프로,",
+            "프로)",
+            "R640"
+          ],
           "single_item": true,
           "ppu_min": 80000,
           "ppu_max": 350000,
@@ -353,7 +694,8 @@
           "min_samples": 3,
           "outlier_iqr_k": 1.5
         }
-      ]
+      ],
+      "category": "electronics"
     },
     {
       "id": "airpods",
@@ -364,15 +706,40 @@
       "stale_days": 180,
       "representative_brand_id": "airpods_pro2",
       "verify_links": true,
-      "exclude": ["케이스", "스킨", "스트랩", "보관함", "리필봉투", "크록스", "for ", "호환"],
+      "exclude": [
+        "케이스",
+        "스킨",
+        "스트랩",
+        "보관함",
+        "리필봉투",
+        "크록스",
+        "for ",
+        "호환"
+      ],
       "default": true,
       "sub_brands": [
         {
           "id": "airpods_pro2",
           "name": "에어팟 프로 2",
-          "search_queries": ["에어팟 프로 2", "AirPods Pro 2", "에어팟프로2", "AirPods Pro 2세대"],
-          "require_any": ["pro", "프로"],
-          "exclude": ["에어팟 4", "AirPods 4", "에어팟4", "에어팟 3", "AirPods 3", "에어팟3", "1세대"],
+          "search_queries": [
+            "에어팟 프로 2",
+            "AirPods Pro 2",
+            "에어팟프로2",
+            "AirPods Pro 2세대"
+          ],
+          "require_any": [
+            "pro",
+            "프로"
+          ],
+          "exclude": [
+            "에어팟 4",
+            "AirPods 4",
+            "에어팟4",
+            "에어팟 3",
+            "AirPods 3",
+            "에어팟3",
+            "1세대"
+          ],
           "single_item": true,
           "ppu_min": 200000,
           "ppu_max": 450000,
@@ -383,9 +750,24 @@
         {
           "id": "airpods_4",
           "name": "에어팟 4세대",
-          "search_queries": ["에어팟 4", "AirPods 4", "에어팟 4세대"],
-          "require_any": ["에어팟 4", "airpods 4", "에어팟4", "4세대"],
-          "exclude": ["프로", "pro ", "에어팟 3", "AirPods 3", "에어팟3"],
+          "search_queries": [
+            "에어팟 4",
+            "AirPods 4",
+            "에어팟 4세대"
+          ],
+          "require_any": [
+            "에어팟 4",
+            "airpods 4",
+            "에어팟4",
+            "4세대"
+          ],
+          "exclude": [
+            "프로",
+            "pro ",
+            "에어팟 3",
+            "AirPods 3",
+            "에어팟3"
+          ],
           "single_item": true,
           "ppu_min": 150000,
           "ppu_max": 350000,
@@ -393,20 +775,43 @@
           "min_samples": 3,
           "outlier_iqr_k": 1.5
         }
-      ]
+      ],
+      "category": "electronics"
     },
     {
       "id": "xiaomi_powerbank",
       "emoji": "🔋",
       "name": "샤오미 슬림 보조배터리",
       "description": "샤오미 울트라슬림 5000~10000mAh",
-      "search_queries": ["샤오미 보조배터리", "샤오미 슬림 보조배터리", "Xiaomi 보조배터리", "샤오미 5000mAh"],
-      "require_any": ["샤오미", "xiaomi"],
+      "search_queries": [
+        "샤오미 보조배터리",
+        "샤오미 슬림 보조배터리",
+        "Xiaomi 보조배터리",
+        "샤오미 5000mAh"
+      ],
+      "require_any": [
+        "샤오미",
+        "xiaomi"
+      ],
       "exclude": [
-        "스마트폰", "5G 글로벌", "갤럭시", "iPhone", "iPad",
-        "Note ", "redmi note", "레드미 노트",
-        "TV", "공기청정기", "청소기", "세탁기",
-        "모니터", "monitor", "선풍기", "fan ", "fan,", "fan."
+        "스마트폰",
+        "5G 글로벌",
+        "갤럭시",
+        "iPhone",
+        "iPad",
+        "Note ",
+        "redmi note",
+        "레드미 노트",
+        "TV",
+        "공기청정기",
+        "청소기",
+        "세탁기",
+        "모니터",
+        "monitor",
+        "선풍기",
+        "fan ",
+        "fan,",
+        "fan."
       ],
       "unit": "개",
       "single_item": true,
@@ -417,7 +822,8 @@
       "outlier_iqr_k": 1.5,
       "stale_days": 180,
       "verify_links": true,
-      "default": true
+      "default": true,
+      "category": "electronics"
     }
   ]
 }
