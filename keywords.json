@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "scan_settings": {
     "max_posts_per_keyword": 50,
     "request_timeout_sec": 15,
@@ -13,7 +13,7 @@
       "description": "스팸 캔당 평균보다 저렴",
       "search_queries": ["스팸"],
       "require_any": ["스팸"],
-      "exclude": ["햇반", "리챔", "비비고", "왕교자", "딤섬", "냥이", "고양이"],
+      "exclude": ["햇반", "리챔", "비비고", "왕교자", "딤섬", "냥이", "고양이", "크래미"],
       "unit": "캔",
       "alert_pct": 80,
       "min_samples": 4,
@@ -36,7 +36,7 @@
         "사료", "간식", "주식캔", "습식",
         "주먹밥", "오뚜기밥", "햇반",
         "통그릴", "비엔나", "왕만두", "딤섬", "리챔",
-        "샘물", "생수",
+        "샘물", "생수", "크래미",
         "참치 외", "골라담기"
       ],
       "default": true,
@@ -94,7 +94,7 @@
         "즉석밥", "햇반", "오뚜기밥",
         "20kg", "20 kg", "골라담기",
         "2개", "3개", "5개", "10개", "박스", "묶음",
-        "외 ", " 외"
+        "외 ", " 외", "크래미"
       ],
       "unit": "포대",
       "single_item": true,
@@ -116,7 +116,7 @@
       "stale_days": 60,
       "representative_brand_id": "kellogg",
       "verify_links": true,
-      "exclude": ["쿠키", "음료", "드링크", "초코바"],
+      "exclude": ["쿠키", "음료", "드링크", "초코바", "크래미"],
       "ppu_min": 1000,
       "ppu_max": 20000,
       "default": true,
@@ -160,7 +160,7 @@
       "description": "임팩트 웨이 WPC/WPI 등",
       "search_queries": ["마이프로틴", "Myprotein", "임팩트웨이", "Impact Whey"],
       "require_any": ["마이프로틴", "myprotein", "임팩트"],
-      "exclude": ["쉐이크", "쉐이크&바", "버라이어티", "맛보기", "드링크", "바 ", "쿠키"],
+      "exclude": ["쉐이크", "쉐이크&바", "버라이어티", "맛보기", "드링크", "바 ", "쿠키", "크래미"],
       "unit": "개",
       "single_item": true,
       "ppu_min": 50000,
@@ -192,42 +192,44 @@
       "default": true
     },
     {
-      "id": "mxmaster3",
+      "id": "mxmaster",
       "emoji": "🖱️",
-      "name": "로지텍 MX Master 3",
-      "description": "역대 최저가 알림 (3 / 3S 포함)",
-      "search_queries": ["MX Master 3", "MX마스터3", "MX Master3", "MX 마스터 3", "Master 3S", "마스터 3S"],
-      "require_any": ["master 3", "마스터 3", "master3", "마스터3"],
-      "exclude": ["master 4", "마스터 4", "master4", "마스터4", "anywhere", "mechanical"],
+      "name": "로지텍 MX Master",
+      "description": "Master 3 / 4 통합",
       "unit": "개",
-      "single_item": true,
-      "ppu_min": 30000,
-      "ppu_max": 200000,
-      "alert_pct": 90,
-      "min_samples": 3,
-      "outlier_iqr_k": 1.5,
       "stale_days": 180,
+      "representative_brand_id": "mxmaster4",
       "verify_links": true,
-      "default": true
-    },
-    {
-      "id": "mxmaster4",
-      "emoji": "🖱️",
-      "name": "로지텍 MX Master 4",
-      "description": "역대 최저가 알림",
-      "search_queries": ["MX Master 4", "MX마스터4", "MX Master4", "MX 마스터 4"],
-      "require_any": ["master 4", "마스터 4", "master4", "마스터4"],
-      "exclude": ["master 3", "마스터 3", "master3", "마스터3", "anywhere", "mechanical"],
-      "unit": "개",
-      "single_item": true,
-      "ppu_min": 80000,
-      "ppu_max": 250000,
-      "alert_pct": 90,
-      "min_samples": 3,
-      "outlier_iqr_k": 1.5,
-      "stale_days": 180,
-      "verify_links": true,
-      "default": true
+      "exclude": ["anywhere", "mechanical"],
+      "default": true,
+      "sub_brands": [
+        {
+          "id": "mxmaster3",
+          "name": "Master 3 / 3S",
+          "search_queries": ["MX Master 3", "MX마스터3", "MX Master3", "MX 마스터 3", "Master 3S", "마스터 3S"],
+          "require_any": ["master 3", "마스터 3", "master3", "마스터3"],
+          "exclude": ["master 4", "마스터 4", "master4", "마스터4"],
+          "single_item": true,
+          "ppu_min": 30000,
+          "ppu_max": 200000,
+          "alert_pct": 90,
+          "min_samples": 3,
+          "outlier_iqr_k": 1.5
+        },
+        {
+          "id": "mxmaster4",
+          "name": "Master 4",
+          "search_queries": ["MX Master 4", "MX마스터4", "MX Master4", "MX 마스터 4"],
+          "require_any": ["master 4", "마스터 4", "master4", "마스터4"],
+          "exclude": ["master 3", "마스터 3", "master3", "마스터3"],
+          "single_item": true,
+          "ppu_min": 80000,
+          "ppu_max": 250000,
+          "alert_pct": 90,
+          "min_samples": 3,
+          "outlier_iqr_k": 1.5
+        }
+      ]
     },
     {
       "id": "buds4pro",
@@ -319,7 +321,8 @@
       "exclude": [
         "스마트폰", "5G 글로벌", "갤럭시", "iPhone", "iPad",
         "Note ", "redmi note", "레드미 노트",
-        "TV", "공기청정기", "청소기", "세탁기"
+        "TV", "공기청정기", "청소기", "세탁기",
+        "모니터", "monitor", "선풍기", "fan ", "fan,", "fan."
       ],
       "unit": "개",
       "single_item": true,
