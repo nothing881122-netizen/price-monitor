@@ -2,12 +2,14 @@ name: algumon keyword hotdeal monitor
 
 on:
   schedule:
-    - cron: '0 0 * * *'   # KST 09:00
-    - cron: '0 2 * * *'   # KST 11:00
-    - cron: '0 4 * * *'   # KST 13:00
-    - cron: '0 6 * * *'   # KST 15:00
-    - cron: '0 8 * * *'   # KST 17:00
-    - cron: '0 10 * * *'  # KST 19:00
+    # 0분(정시)은 GitHub Actions cron 적체가 가장 심함 — odd 분으로 분산.
+    # KST 환산: UTC + 9. 실제 fire는 cron 약속 시각 + 0~5시간 지연이 흔함.
+    - cron: '7 0 * * *'    # KST 09:07
+    - cron: '23 2 * * *'   # KST 11:23
+    - cron: '37 4 * * *'   # KST 13:37
+    - cron: '13 6 * * *'   # KST 15:13
+    - cron: '47 8 * * *'   # KST 17:47
+    - cron: '17 10 * * *'  # KST 19:17
   workflow_dispatch:       # 수동 실행 버튼
 
 jobs:

@@ -881,9 +881,13 @@ def _filter_deals(deals: list[dict], kw: dict, now: datetime) -> list[dict]:
 
 
 def _send_super_push(kid: str, kw: dict, super_hits: list[dict]) -> bool:
-    """찐 특가 전용 푸시 — 화려한 본문 + 전용 페이지 deep link + 자동 음성용 플래그."""
-    if not send_push or not super_hits:
+    """찐 특가 전용 푸시 — 화려한 본문 + 전용 페이지 deep link + 자동 음성용 플래그.
+    fail-closed: 실제 1건 이상 발송 성공해야 True (구독자/VAPID 없음 → False → seen 보호)."""
+    if not super_hits:
         return True
+    if not send_push:
+        print("  [WARN] pywebpush 미설치 — 찐 특가 push 불가 (seen 보호)", flush=True)
+        return False
     unit = kw.get("unit", "개")
     d0 = super_hits[0]
     ppu = d0.get("price_per_unit") or 0
@@ -905,16 +909,20 @@ def _send_super_push(kid: str, kw: dict, super_hits: list[dict]) -> bool:
             "super", title, body, url=super_url, actions=actions,
             require_interaction=True,
         )
-        return (ok > 0) or (ok + fail == 0)
+        return ok > 0
     except Exception as e:
         print(f"  [WARN] 찐 특가 push 예외: {e}", flush=True)
         return False
 
 
 def _send_push_for_keyword(kid: str, kw: dict, hits: list[dict]) -> bool:
-    """키워드별 PWA Web Push 발송. 성공 시 True. sub_brands 있으면 본문에 brand 라벨 포함."""
-    if not send_push or not hits:
+    """키워드별 PWA Web Push 발송.
+    fail-closed: 실제 1건 이상 발송 성공해야 True (구독자/VAPID 없음 → False → seen 보호)."""
+    if not hits:
         return True
+    if not send_push:
+        print("  [WARN] pywebpush 미설치 — push 불가 (seen 보호)", flush=True)
+        return False
     unit = kw.get("unit", "개")
     title = f"{kw['emoji']} {kw['name']} 핫딜 {len(hits)}건"
     body_lines = []
@@ -937,7 +945,7 @@ def _send_push_for_keyword(kid: str, kw: dict, hits: list[dict]) -> bool:
     first_url = hits[0].get("external") or hits[0]["url"]
     try:
         ok, fail = send_push(kid, title, body, url=first_url, actions=actions)
-        return (ok > 0) or (ok + fail == 0)
+        return ok > 0
     except Exception as e:
         print(f"  [WARN] push 예외: {e}", flush=True)
         return False
@@ -946,9 +954,11 @@ def _send_push_for_keyword(kid: str, kw: dict, hits: list[dict]) -> bool:
 def main() -> None:
     now = datetime.now()
     force = os.environ.get("FORCE_RUN", "").lower() in ("1", "true", "yes")
-    if not force and not (9 <= now.hour < 20):
-        print(f"[SKIP] 운영 시간 외 ({now.strftime('%H:%M')})", flush=True)
-        sys.exit(0)
+    # 운영 시간 가드 제거. GitHub Actions cron은 0~5시간 지연이 정상이라
+    # 시간 가드를 좁게 잡으면 cron이 의도된 슬롯에 fire 못한 cycle을 통째로 잃음
+    # (실측: 30회 중 25회 SKIP). cron schedule이 시간 통제하고 Python은 일단 실행.
+    # 새벽 알람을 피하려면 monitor.yml 의 cron 분/시를 조정.
+    _ = force  # workflow_dispatch 호환을 위해 변수는 유지
 
     cfg_data = load_keywords()
     keywords = cfg_data.get("keywords", [])
