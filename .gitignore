@@ -1,6 +1,12 @@
 
 config.json
 __pycache__/
+
+# Pages 로 deploy 되는 산출물 (flight-deals repo 가 호스팅)
 deals.html
+brand-analysis.html
+scout.html
+super-deals.html
+
 diag.log
 
