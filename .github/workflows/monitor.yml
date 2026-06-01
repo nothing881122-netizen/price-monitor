@@ -51,3 +51,13 @@ jobs:
           git add seen_ids.json price_history.jsonl 2>/dev/null || true
           git diff --staged --quiet || git commit -m "chore: update seen + history [skip ci]"
           git push
+
+      # Dead-man's switch — healthchecks.io 가 약속 cron 시각 + grace 안에 ping 못 받으면 알람.
+      # ping URL 은 시크릿 (forge 방지). 모든 step 통과 시 정상 ping, 어디서든 실패 시 /fail.
+      - name: Healthchecks ping (success)
+        if: success()
+        run: curl -fsS -m 10 --retry 3 -o /dev/null "${{ secrets.HEALTHCHECK_URL }}"
+
+      - name: Healthchecks ping (failure)
+        if: failure()
+        run: curl -fsS -m 10 --retry 3 -o /dev/null "${{ secrets.HEALTHCHECK_URL }}/fail"
