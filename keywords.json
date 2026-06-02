@@ -265,12 +265,23 @@
       "stale_days": 60,
       "representative_brand_id": "kellogg",
       "verify_links": true,
+      "require_any": [
+        "그래놀라",
+        "그래뇰라",
+        "granola"
+      ],
       "exclude": [
         "쿠키",
         "음료",
         "드링크",
         "초코바",
-        "크래미"
+        "크래미",
+        "쌀",
+        "커피",
+        "커피믹스",
+        "콤부차",
+        "녹차",
+        "하루견과"
       ],
       "ppu_min": 1000,
       "ppu_max": 20000,
@@ -284,10 +295,6 @@
             "Kellogg 그래놀라",
             "크렌베리 아몬드 그래놀라",
             "리얼 그래놀라"
-          ],
-          "require_any": [
-            "켈로그",
-            "kellogg"
           ],
           "exclude": [
             "동서",
@@ -306,9 +313,6 @@
             "동서 초코 그래놀라",
             "동서식품 그래놀라"
           ],
-          "require_any": [
-            "동서"
-          ],
           "exclude": [
             "켈로그",
             "포스트",
@@ -322,11 +326,7 @@
           "id": "sangwadulae",
           "name": "산과들에",
           "search_queries": [
-            "산과들에 그래놀라",
-            "산과들에"
-          ],
-          "require_any": [
-            "산과들에"
+            "산과들에 그래놀라"
           ],
           "exclude": [
             "켈로그",
@@ -435,12 +435,11 @@
           "id": "binggrae",
           "name": "빙그레 그릭데이",
           "search_queries": [
-            "빙그레 그릭",
+            "그릭데이 그릭요거트",
             "그릭데이",
-            "빙그레 요거트"
+            "빙그레 그릭데이"
           ],
           "require_any": [
-            "빙그레",
             "그릭데이"
           ],
           "exclude": [
