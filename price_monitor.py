@@ -26,9 +26,10 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 try:
-    from push_notify import send_push
+    from push_notify import send_push, log_notify
 except ImportError:
     send_push = None
+    log_notify = None
 
 # ─────────────────────────────────────────────
 # 경로 / 상수
@@ -909,6 +910,8 @@ def _send_super_push(kid: str, kw: dict, super_hits: list[dict]) -> bool:
             "super", title, body, url=super_url, actions=actions,
             require_interaction=True,
         )
+        if log_notify:
+            log_notify("price", "super", len(super_hits), ok, fail)
         return ok > 0
     except Exception as e:
         print(f"  [WARN] 찐 특가 push 예외: {e}", flush=True)
@@ -945,6 +948,8 @@ def _send_push_for_keyword(kid: str, kw: dict, hits: list[dict]) -> bool:
     first_url = hits[0].get("external") or hits[0]["url"]
     try:
         ok, fail = send_push(kid, title, body, url=first_url, actions=actions)
+        if log_notify:
+            log_notify("price", kid, len(hits), ok, fail)
         return ok > 0
     except Exception as e:
         print(f"  [WARN] push 예외: {e}", flush=True)

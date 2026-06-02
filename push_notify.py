@@ -146,6 +146,35 @@ def send_push(
     return (ok, fail)
 
 
+def log_notify(system: str, topic: str, count: int, ok: int, fail: int,
+               log_path: str | None = None) -> None:
+    """알람 발송 1건을 notify_log.jsonl 에 append (append-only 대장).
+    날짜별 누적 집계 / 아침 보고용. best-effort — 실패해도 모니터 흐름엔 영향 없음.
+
+    system : "price" | "flight" | "scout" ...
+    topic  : 토픽 id (spam, super, flight ...)
+    count  : 그 push 에 담긴 deal/특가 수 (0 = '특가 없음' 류 알림)
+    ok/fail: 구독자 발송 성공/실패 수
+    """
+    from datetime import datetime
+    try:
+        path = Path(log_path) if log_path else (ROOT / "notify_log.jsonl")
+        now = datetime.now()
+        row = {
+            "ts":    now.replace(microsecond=0).isoformat(),
+            "date":  now.strftime("%Y-%m-%d"),
+            "sys":   system,
+            "topic": topic,
+            "count": count,
+            "ok":    ok,
+            "fail":  fail,
+        }
+        with path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    except Exception as e:
+        print(f"  [WARN] notify_log 기록 실패: {e}", flush=True)
+
+
 if __name__ == "__main__":
     # 직접 실행 시 테스트 푸시
     import sys
