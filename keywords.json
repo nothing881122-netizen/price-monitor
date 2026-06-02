@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "scan_settings": {
     "max_posts_per_keyword": 50,
     "request_timeout_sec": 15,
@@ -10,6 +10,11 @@
       "id": "food",
       "name": "식품",
       "emoji": "🍴"
+    },
+    {
+      "id": "household",
+      "name": "생활/위생",
+      "emoji": "🧺"
     },
     {
       "id": "electronics",
@@ -824,6 +829,110 @@
       "verify_links": true,
       "default": true,
       "category": "electronics"
+    },
+    {
+      "id": "soymilk",
+      "emoji": "🥛",
+      "name": "두유 박스",
+      "description": "전체 브랜드 통합 — 박스 팩당 단가",
+      "search_queries": [
+        "삼육두유",
+        "베지밀",
+        "매일두유",
+        "두유"
+      ],
+      "require_any": [
+        "두유"
+      ],
+      "exclude": [
+        "메이커",
+        "제조기",
+        "두유기",
+        "두유과자",
+        "쿠키",
+        "고양이",
+        "강아지",
+        "사료",
+        "크래미"
+      ],
+      "unit": "팩",
+      "ppu_min": 200,
+      "ppu_max": 2000,
+      "alert_pct": 85,
+      "min_samples": 5,
+      "outlier_iqr_k": 1.5,
+      "stale_days": 60,
+      "verify_links": true,
+      "default": true,
+      "category": "food"
+    },
+    {
+      "id": "laundry_detergent",
+      "emoji": "🧺",
+      "name": "세탁세제",
+      "description": "액체/캡슐 통합 — 평소 대비 저렴",
+      "search_queries": [
+        "비트 세제",
+        "액츠 세제",
+        "퍼실 세탁세제",
+        "테크 세제",
+        "세탁세제"
+      ],
+      "require_any": [
+        "세제"
+      ],
+      "exclude": [
+        "유연제",
+        "섬유유연제",
+        "주방",
+        "식기",
+        "핸드워시",
+        "바디",
+        "샴푸",
+        "크래미"
+      ],
+      "unit": "개",
+      "ppu_min": 3000,
+      "ppu_max": 50000,
+      "alert_pct": 85,
+      "min_samples": 5,
+      "outlier_iqr_k": 1.5,
+      "stale_days": 60,
+      "verify_links": true,
+      "default": true,
+      "category": "household"
+    },
+    {
+      "id": "fabric_softener",
+      "emoji": "🌸",
+      "name": "섬유유연제",
+      "description": "전체 브랜드 통합 — 평소 대비 저렴",
+      "search_queries": [
+        "다우니 섬유유연제",
+        "샤프란",
+        "피죤",
+        "섬유유연제"
+      ],
+      "require_any": [
+        "유연제"
+      ],
+      "exclude": [
+        "세제",
+        "세탁세제",
+        "주방",
+        "식기",
+        "크래미"
+      ],
+      "unit": "개",
+      "ppu_min": 3000,
+      "ppu_max": 40000,
+      "alert_pct": 85,
+      "min_samples": 5,
+      "outlier_iqr_k": 1.5,
+      "stale_days": 60,
+      "verify_links": true,
+      "default": true,
+      "category": "household"
     }
   ]
 }
