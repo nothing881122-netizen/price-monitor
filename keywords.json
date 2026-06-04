@@ -933,6 +933,111 @@
       "verify_links": true,
       "default": true,
       "category": "household"
+    },
+    {
+      "id": "toilet_paper",
+      "emoji": "🧻",
+      "name": "화장지",
+      "description": "두루마리 화장지 — 롤당 단가",
+      "search_queries": [
+        "크리넥스 화장지",
+        "뽀삐 화장지",
+        "깨끗한나라 화장지",
+        "화장지 30롤"
+      ],
+      "require_any": [
+        "화장지"
+      ],
+      "exclude": [
+        "물티슈",
+        "키친",
+        "미용티슈",
+        "각티슈",
+        "냅킨",
+        "핸드타월",
+        "페이퍼타월",
+        "크래미"
+      ],
+      "unit": "롤",
+      "ppu_min": 100,
+      "ppu_max": 2000,
+      "alert_pct": 85,
+      "min_samples": 5,
+      "outlier_iqr_k": 1.5,
+      "stale_days": 60,
+      "verify_links": true,
+      "default": true,
+      "category": "household"
+    },
+    {
+      "id": "body_wash",
+      "emoji": "🛁",
+      "name": "바디워시",
+      "description": "전체 브랜드 통합 — 평소 대비 저렴",
+      "search_queries": [
+        "도브 바디워시",
+        "해피바스 바디워시",
+        "온더바디 바디워시",
+        "바디워시"
+      ],
+      "require_any": [
+        "바디워시"
+      ],
+      "exclude": [
+        "로션",
+        "샴푸",
+        "린스",
+        "클렌저",
+        "페이셜",
+        "비누",
+        "핸드워시",
+        "크래미"
+      ],
+      "unit": "개",
+      "ppu_min": 2000,
+      "ppu_max": 30000,
+      "alert_pct": 85,
+      "min_samples": 5,
+      "outlier_iqr_k": 1.5,
+      "stale_days": 60,
+      "verify_links": true,
+      "default": true,
+      "category": "household"
+    },
+    {
+      "id": "coffee_mix",
+      "emoji": "☕",
+      "name": "커피믹스",
+      "description": "맥심·카누 등 인스턴트 — 스틱당 단가",
+      "search_queries": [
+        "맥심 커피믹스",
+        "카누 아메리카노",
+        "맥심 모카골드",
+        "커피믹스"
+      ],
+      "require_any": [
+        "커피"
+      ],
+      "exclude": [
+        "원두",
+        "캡슐",
+        "머신",
+        "드립백",
+        "콜드브루",
+        "액상",
+        "시럽",
+        "크래미"
+      ],
+      "unit": "개",
+      "ppu_min": 50,
+      "ppu_max": 1000,
+      "alert_pct": 85,
+      "min_samples": 5,
+      "outlier_iqr_k": 1.5,
+      "stale_days": 60,
+      "verify_links": true,
+      "default": true,
+      "category": "food"
     }
   ]
 }
