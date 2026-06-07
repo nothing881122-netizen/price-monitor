@@ -249,6 +249,45 @@
       "search_queries": ["무선충전기", "벨킨 무선충전", "맥세이프 충전기", "삼성 무선충전"],
       "known_brands": ["벨킨", "belkin", "삼성", "samsung", "앤커", "anker", "맥세이프", "magsafe", "애플", "apple"],
       "min_posts": 5
-    }
+    },
+
+    { "id": "instant_rice", "emoji": "🍚", "name": "즉석밥", "category": "food",
+      "search_queries": ["햇반", "오뚜기밥", "즉석밥"],
+      "known_brands": ["햇반", "오뚜기", "곰곰", "비비고", "cj", "hetbahn"], "min_posts": 5 },
+    { "id": "cereal", "emoji": "🥣", "name": "시리얼", "category": "food",
+      "search_queries": ["켈로그 콘푸로스트", "첵스", "시리얼", "포스트 시리얼"],
+      "known_brands": ["켈로그", "kellogg", "콘푸로스트", "첵스", "포스트", "post", "농심", "그래놀라"], "min_posts": 5 },
+    { "id": "pasta", "emoji": "🍝", "name": "파스타면", "category": "food",
+      "search_queries": ["바릴라 스파게티", "파스타면", "스파게티 면"],
+      "known_brands": ["바릴라", "barilla", "디체코", "dececco", "오뚜기", "폰타나"], "min_posts": 5 },
+    { "id": "gim", "emoji": "🍙", "name": "조미김", "category": "food",
+      "search_queries": ["조미김", "도시락김", "김 선물세트"],
+      "known_brands": ["성경", "양반", "동원", "광천", "대천", "곰곰", "사조"], "min_posts": 5 },
+    { "id": "cooking_oil", "emoji": "🫗", "name": "식용유", "category": "food",
+      "search_queries": ["백설 식용유", "해표 식용유", "카놀라유", "포도씨유"],
+      "known_brands": ["백설", "해표", "오뚜기", "cj", "사조", "곰곰"], "min_posts": 5 },
+
+    { "id": "diaper", "emoji": "👶", "name": "기저귀", "category": "household",
+      "search_queries": ["하기스 기저귀", "팸퍼스", "기저귀 박스", "보솜이 기저귀"],
+      "known_brands": ["하기스", "huggies", "팸퍼스", "pampers", "보솜이", "군기저귀", "마미포코", "네이처러브메레"], "min_posts": 5 },
+    { "id": "sanitary_pad", "emoji": "🩸", "name": "생리대", "category": "household",
+      "search_queries": ["좋은느낌 생리대", "위스퍼", "쏘피", "생리대 대용량"],
+      "known_brands": ["좋은느낌", "위스퍼", "whisper", "쏘피", "sofy", "라엘", "유한킴벌리", "나트라케어"], "min_posts": 5 },
+    { "id": "mouthwash", "emoji": "🦷", "name": "가글", "category": "household",
+      "search_queries": ["가그린", "리스테린", "가글 대용량"],
+      "known_brands": ["가그린", "리스테린", "listerine", "센소다인", "2080", "페리오"], "min_posts": 5 },
+    { "id": "razor", "emoji": "🪒", "name": "면도날", "category": "household",
+      "search_queries": ["질레트 면도날", "도루코 면도날", "면도날 리필"],
+      "known_brands": ["질레트", "gillette", "도루코", "dorco", "쉬크", "schick", "하이브리드"], "min_posts": 5 },
+
+    { "id": "monitor", "emoji": "🖥️", "name": "모니터", "category": "electronics",
+      "search_queries": ["삼성 모니터", "LG 모니터", "27인치 모니터", "게이밍 모니터"],
+      "known_brands": ["삼성", "samsung", "lg", "벤큐", "benq", "한성", "알파스캔", "dell", "에이수스", "asus"], "min_posts": 5 },
+    { "id": "wireless_mouse", "emoji": "🖱️", "name": "무선마우스", "category": "electronics",
+      "search_queries": ["로지텍 무선마우스", "무선마우스", "버티컬 마우스"],
+      "known_brands": ["로지텍", "logitech", "마이크로소프트", "microsoft", "앱코", "abko", "레이저", "razer"], "min_posts": 5 },
+    { "id": "usb_memory", "emoji": "💾", "name": "USB메모리", "category": "electronics",
+      "search_queries": ["샌디스크 USB", "USB 메모리", "USB 3.0 64GB"],
+      "known_brands": ["샌디스크", "sandisk", "삼성", "samsung", "키오시아", "kioxia", "레노버", "트랜센드", "transcend"], "min_posts": 5 }
   ]
 }
