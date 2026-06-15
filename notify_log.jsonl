@@ -11,3 +11,4 @@
 {"ts": "2026-06-09T17:50:38", "date": "2026-06-09", "sys": "price", "topic": "super", "count": 1, "ok": 1, "fail": 0}
 {"ts": "2026-06-11T15:16:26", "date": "2026-06-11", "sys": "price", "topic": "laundry_detergent", "count": 1, "ok": 1, "fail": 0}
 {"ts": "2026-06-12T21:44:12", "date": "2026-06-12", "sys": "price", "topic": "fabric_softener", "count": 1, "ok": 1, "fail": 0}
+{"ts": "2026-06-15T17:50:49", "date": "2026-06-15", "sys": "price", "topic": "toilet_paper", "count": 1, "ok": 1, "fail": 0}
