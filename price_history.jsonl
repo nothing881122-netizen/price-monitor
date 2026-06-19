@@ -44696,3 +44696,262 @@
 {"t": "2026-06-20T02:25:46", "kid": "coffee_mix", "brand": "커피믹스", "ppu": 324, "total": 38900, "qty": 120, "store": "옥션", "id": "973345", "ended": false, "pdate": "2026-05-08"}
 {"t": "2026-06-20T02:25:46", "kid": "coffee_mix", "brand": "커피믹스", "ppu": 237, "total": 47520, "qty": 200, "store": "쿠팡", "id": "985170", "ended": false, "pdate": "2026-06-01"}
 {"t": "2026-06-20T02:25:46", "kid": "coffee_mix", "brand": "커피믹스", "ppu": 90, "total": 2700, "qty": 30, "store": "네이버쇼핑", "id": "969765", "ended": false, "pdate": "2026-04-30"}
+{"t": "2026-06-20T02:31:40", "kid": "spam", "brand": "클래식", "ppu": 2480, "total": 29760, "qty": 12, "store": "CJ더마켓", "id": "987489", "ended": false, "pdate": "2026-06-05"}
+{"t": "2026-06-20T02:31:40", "kid": "spam", "brand": "클래식", "ppu": 2510, "total": 45180, "qty": 18, "store": "CJ더마켓", "id": "981505", "ended": false, "pdate": "2026-05-24"}
+{"t": "2026-06-20T02:31:40", "kid": "spam", "brand": "클래식", "ppu": 5691, "total": 56916, "qty": 10, "store": "CJ더마켓", "id": "973713", "ended": false, "pdate": "2026-05-09"}
+{"t": "2026-06-20T02:31:40", "kid": "spam", "brand": "클래식", "ppu": 6183, "total": 61834, "qty": 10, "store": "오늘의집", "id": "971372", "ended": false, "pdate": "2026-05-04"}
+{"t": "2026-06-20T02:31:40", "kid": "spam", "brand": "클래식", "ppu": 5528, "total": 22113, "qty": 4, "store": "오늘의집", "id": "967663", "ended": false, "pdate": "2026-04-25"}
+{"t": "2026-06-20T02:31:40", "kid": "spam", "brand": "클래식", "ppu": 5712, "total": 22851, "qty": 4, "store": "오늘의집", "id": "966753", "ended": false, "pdate": "2026-04-23"}
+{"t": "2026-06-20T02:31:40", "kid": "spam", "brand": "클래식", "ppu": 2856, "total": 22851, "qty": 8, "store": "오늘의집", "id": "966398", "ended": false, "pdate": "2026-04-23"}
+{"t": "2026-06-20T02:31:40", "kid": "spam", "brand": "클래식", "ppu": 2674, "total": 48144, "qty": 18, "store": "CJ더마켓", "id": "973228", "ended": false, "pdate": "2026-05-08"}
+{"t": "2026-06-20T02:31:40", "kid": "spam", "brand": "클래식", "ppu": 2493, "total": 14960, "qty": 6, "store": "", "id": "988569", "ended": false, "pdate": "2026-06-07"}
+{"t": "2026-06-20T02:31:40", "kid": "spam", "brand": "라이트", "ppu": 1190, "total": 11900, "qty": 10, "store": "G마켓", "id": "972866", "ended": false, "pdate": "2026-05-07"}
+{"t": "2026-06-20T02:31:40", "kid": "spam", "brand": "라이트", "ppu": 1450, "total": 14500, "qty": 10, "store": "G마켓", "id": "968401", "ended": false, "pdate": "2026-04-27"}
+{"t": "2026-06-20T02:31:40", "kid": "spam", "brand": "라이트", "ppu": 2245, "total": 20210, "qty": 9, "store": "", "id": "991410", "ended": false, "pdate": "2026-06-12"}
+{"t": "2026-06-20T02:31:40", "kid": "spam", "brand": "라이트", "ppu": 1131, "total": 11310, "qty": 10, "store": "", "id": "976606", "ended": false, "pdate": "2026-05-14"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "동원", "ppu": 1833, "total": 33000, "qty": 18, "store": "동원몰", "id": "995402", "ended": false, "pdate": "2026-06-18"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "동원", "ppu": 2160, "total": 21600, "qty": 10, "store": "sk스토아", "id": "992996", "ended": false, "pdate": "2026-06-15"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "동원", "ppu": 1750, "total": 17500, "qty": 10, "store": "네이버쇼핑", "id": "982153", "ended": false, "pdate": "2026-05-26"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "동원", "ppu": 1829, "total": 21950, "qty": 12, "store": "G마켓", "id": "990530", "ended": false, "pdate": "2026-06-10"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "동원", "ppu": 1408, "total": 14082, "qty": 10, "store": "오늘의집", "id": "990189", "ended": false, "pdate": "2026-06-10"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "동원", "ppu": 1445, "total": 14456, "qty": 10, "store": "오늘의집", "id": "988711", "ended": false, "pdate": "2026-06-08"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "동원", "ppu": 1350, "total": 27000, "qty": 20, "store": "동원몰", "id": "987194", "ended": false, "pdate": "2026-06-04"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "동원", "ppu": 1931, "total": 23180, "qty": 12, "store": "G마켓", "id": "986058", "ended": false, "pdate": "2026-06-02"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "동원", "ppu": 870, "total": 17400, "qty": 20, "store": "네이버쇼핑", "id": "985524", "ended": false, "pdate": "2026-06-01"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "동원", "ppu": 1424, "total": 14244, "qty": 10, "store": "오늘의집", "id": "985074", "ended": false, "pdate": "2026-06-01"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "동원", "ppu": 4190, "total": 8380, "qty": 2, "store": "쿠팡", "id": "984405", "ended": false, "pdate": "2026-05-30"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "동원", "ppu": 2475, "total": 9900, "qty": 4, "store": "쿠팡", "id": "983482", "ended": false, "pdate": "2026-05-28"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "동원", "ppu": 2248, "total": 17990, "qty": 8, "store": "토스", "id": "978268", "ended": false, "pdate": "2026-05-18"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "동원", "ppu": 1611, "total": 16110, "qty": 10, "store": "네이버쇼핑", "id": "969330", "ended": false, "pdate": "2026-04-29"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "동원", "ppu": 2730, "total": 21840, "qty": 8, "store": "G마켓", "id": "995714", "ended": false, "pdate": "2026-06-19"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "동원", "ppu": 458, "total": 13764, "qty": 30, "store": "카카오", "id": "986227", "ended": false, "pdate": "2026-06-02"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "동원", "ppu": 1366, "total": 20500, "qty": 15, "store": "NS몰", "id": "981417", "ended": false, "pdate": "2026-05-24"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "동원", "ppu": 2325, "total": 83700, "qty": 36, "store": "쿠팡", "id": "981325", "ended": false, "pdate": "2026-05-23"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "동원", "ppu": 2310, "total": 13861, "qty": 6, "store": "오늘의집", "id": "977438", "ended": false, "pdate": "2026-05-16"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "동원", "ppu": 1611, "total": 16110, "qty": 10, "store": "", "id": "969336", "ended": false, "pdate": "2026-04-29"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "사조", "ppu": 1125, "total": 13500, "qty": 12, "store": "G마켓", "id": "993553", "ended": false, "pdate": "2026-06-16"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "사조", "ppu": 1291, "total": 15500, "qty": 12, "store": "옥션", "id": "990388", "ended": false, "pdate": "2026-06-10"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "사조", "ppu": 1208, "total": 14500, "qty": 12, "store": "G마켓", "id": "972772", "ended": false, "pdate": "2026-05-07"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "사조", "ppu": 1166, "total": 27990, "qty": 24, "store": "롯데온", "id": "985331", "ended": false, "pdate": "2026-06-01"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "사조", "ppu": 1158, "total": 13900, "qty": 12, "store": "G마켓", "id": "974223", "ended": false, "pdate": "2026-05-10"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "사조", "ppu": 1575, "total": 12600, "qty": 8, "store": "쿠팡", "id": "983496", "ended": false, "pdate": "2026-05-28"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "사조", "ppu": 1332, "total": 15990, "qty": 12, "store": "11번가", "id": "978043", "ended": false, "pdate": "2026-05-17"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "사조", "ppu": 1883, "total": 22600, "qty": 12, "store": "롯데온", "id": "975792", "ended": false, "pdate": "2026-05-13"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "사조", "ppu": 1092, "total": 26220, "qty": 24, "store": "롯데온", "id": "970307", "ended": false, "pdate": "2026-05-01"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "사조", "ppu": 1450, "total": 23200, "qty": 16, "store": "", "id": "983532", "ended": false, "pdate": "2026-05-28"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "한성", "ppu": 816, "total": 16320, "qty": 20, "store": "G마켓", "id": "994996", "ended": false, "pdate": "2026-06-18"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "한성", "ppu": 650, "total": 9760, "qty": 15, "store": "네이버쇼핑", "id": "993492", "ended": false, "pdate": "2026-06-16"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "한성", "ppu": 1340, "total": 6700, "qty": 5, "store": "네이버쇼핑", "id": "986820", "ended": false, "pdate": "2026-06-03"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "한성", "ppu": 779, "total": 15580, "qty": 20, "store": "11번가", "id": "983287", "ended": false, "pdate": "2026-05-28"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "한성", "ppu": 690, "total": 6900, "qty": 10, "store": "네이버쇼핑", "id": "982600", "ended": false, "pdate": "2026-05-26"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "한성", "ppu": 652, "total": 7180, "qty": 11, "store": "", "id": "993643", "ended": false, "pdate": "2026-06-16"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "한성", "ppu": 653, "total": 9800, "qty": 15, "store": "", "id": "993449", "ended": false, "pdate": "2026-06-15"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "한성", "ppu": 718, "total": 7900, "qty": 11, "store": "", "id": "991419", "ended": false, "pdate": "2026-06-12"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "오뚜기", "ppu": 1732, "total": 13860, "qty": 8, "store": "쿠팡", "id": "986610", "ended": false, "pdate": "2026-06-03"}
+{"t": "2026-06-20T02:31:40", "kid": "tuna", "brand": "오뚜기", "ppu": 1496, "total": 23940, "qty": 16, "store": "롯데온", "id": "972063", "ended": false, "pdate": "2026-05-06"}
+{"t": "2026-06-20T02:31:40", "kid": "rice", "brand": "고시히카리 10kg", "ppu": 31875, "total": 31875, "qty": 1, "store": "그리팅몰", "id": "985938", "ended": false, "pdate": "2026-06-02"}
+{"t": "2026-06-20T02:31:40", "kid": "rice", "brand": "고시히카리 10kg", "ppu": 31010, "total": 31010, "qty": 1, "store": "네이버쇼핑", "id": "952920", "ended": false, "pdate": "2026-03-24"}
+{"t": "2026-06-20T02:31:40", "kid": "rice", "brand": "고시히카리 10kg", "ppu": 31010, "total": 31010, "qty": 1, "store": "네이버쇼핑", "id": "952344", "ended": false, "pdate": "2026-03-23"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 7357, "total": 14715, "qty": 2, "store": "네이버쇼핑", "id": "994882", "ended": false, "pdate": "2026-06-18"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 5950, "total": 11900, "qty": 2, "store": "GS샵", "id": "994497", "ended": false, "pdate": "2026-06-17"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 3505, "total": 7010, "qty": 2, "store": "쿠팡", "id": "992397", "ended": false, "pdate": "2026-06-14"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 4920, "total": 14760, "qty": 3, "store": "롯데온", "id": "992362", "ended": false, "pdate": "2026-06-14"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 4586, "total": 13760, "qty": 3, "store": "롯데온", "id": "992195", "ended": false, "pdate": "2026-06-13"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 4500, "total": 13500, "qty": 3, "store": "w컨셉", "id": "992091", "ended": false, "pdate": "2026-06-13"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 5950, "total": 11900, "qty": 2, "store": "gs샵", "id": "991585", "ended": false, "pdate": "2026-06-12"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 4843, "total": 14530, "qty": 3, "store": "롯데온", "id": "989690", "ended": false, "pdate": "2026-06-09"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 3990, "total": 7980, "qty": 2, "store": "쿠팡", "id": "989644", "ended": false, "pdate": "2026-06-09"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 5500, "total": 16500, "qty": 3, "store": "gsshop", "id": "988935", "ended": false, "pdate": "2026-06-08"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 3996, "total": 11990, "qty": 3, "store": "G마켓", "id": "986034", "ended": false, "pdate": "2026-06-02"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 4640, "total": 9280, "qty": 2, "store": "쿠팡", "id": "984804", "ended": false, "pdate": "2026-05-31"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 4650, "total": 13950, "qty": 3, "store": "G마켓", "id": "984000", "ended": false, "pdate": "2026-05-29"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 4293, "total": 12880, "qty": 3, "store": "G마켓", "id": "983156", "ended": false, "pdate": "2026-05-27"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 5210, "total": 10420, "qty": 2, "store": "11번가", "id": "982567", "ended": false, "pdate": "2026-05-26"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 4950, "total": 9900, "qty": 2, "store": "11번가", "id": "979581", "ended": false, "pdate": "2026-05-20"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 3455, "total": 6910, "qty": 2, "store": "쿠팡", "id": "979511", "ended": false, "pdate": "2026-05-20"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 4995, "total": 9990, "qty": 2, "store": "롯데온", "id": "978528", "ended": false, "pdate": "2026-05-18"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 5160, "total": 10320, "qty": 2, "store": "쿠팡", "id": "975110", "ended": false, "pdate": "2026-05-12"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 4660, "total": 13980, "qty": 3, "store": "옥션", "id": "969247", "ended": false, "pdate": "2026-04-29"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "켈로그", "ppu": 3455, "total": 6910, "qty": 2, "store": "", "id": "979513", "ended": false, "pdate": "2026-05-20"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "동서", "ppu": 3330, "total": 9990, "qty": 3, "store": "떠리몰", "id": "995725", "ended": false, "pdate": "2026-06-19"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "동서", "ppu": 4330, "total": 12990, "qty": 3, "store": "떠리몰", "id": "985995", "ended": false, "pdate": "2026-06-02"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "동서", "ppu": 4300, "total": 12900, "qty": 3, "store": "기타", "id": "980369", "ended": false, "pdate": "2026-05-21"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "동서", "ppu": 2245, "total": 4490, "qty": 2, "store": "네이버쇼핑", "id": "979795", "ended": false, "pdate": "2026-05-20"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "동서", "ppu": 4300, "total": 12900, "qty": 3, "store": "알토란마켓", "id": "977338", "ended": false, "pdate": "2026-05-15"}
+{"t": "2026-06-20T02:31:40", "kid": "granola", "brand": "동서", "ppu": 2245, "total": 4490, "qty": 2, "store": "", "id": "979667", "ended": false, "pdate": "2026-05-20"}
+{"t": "2026-06-20T02:31:40", "kid": "yogurt", "brand": "일동후디스", "ppu": 4100, "total": 8200, "qty": 2, "store": "토스", "id": "982243", "ended": false, "pdate": "2026-05-26"}
+{"t": "2026-06-20T02:31:40", "kid": "yogurt", "brand": "일동후디스", "ppu": 3450, "total": 6900, "qty": 2, "store": "11번가", "id": "995736", "ended": false, "pdate": "2026-06-19"}
+{"t": "2026-06-20T02:31:40", "kid": "yogurt", "brand": "일동후디스", "ppu": 3700, "total": 7400, "qty": 2, "store": "토스", "id": "993490", "ended": false, "pdate": "2026-06-16"}
+{"t": "2026-06-20T02:31:40", "kid": "yogurt", "brand": "일동후디스", "ppu": 3450, "total": 6900, "qty": 2, "store": "토스", "id": "991592", "ended": false, "pdate": "2026-06-12"}
+{"t": "2026-06-20T02:31:40", "kid": "yogurt", "brand": "일동후디스", "ppu": 4830, "total": 9660, "qty": 2, "store": "토스", "id": "990570", "ended": false, "pdate": "2026-06-11"}
+{"t": "2026-06-20T02:31:40", "kid": "yogurt", "brand": "일동후디스", "ppu": 3362, "total": 13450, "qty": 4, "store": "롯데온", "id": "989947", "ended": false, "pdate": "2026-06-10"}
+{"t": "2026-06-20T02:31:40", "kid": "yogurt", "brand": "일동후디스", "ppu": 3400, "total": 6800, "qty": 2, "store": "토스쇼핑", "id": "979584", "ended": false, "pdate": "2026-05-20"}
+{"t": "2026-06-20T02:31:40", "kid": "yogurt", "brand": "일동후디스", "ppu": 3700, "total": 7400, "qty": 2, "store": "토스쇼핑", "id": "976261", "ended": false, "pdate": "2026-05-14"}
+{"t": "2026-06-20T02:31:40", "kid": "yogurt", "brand": "일동후디스", "ppu": 4395, "total": 8790, "qty": 2, "store": "11번가", "id": "975478", "ended": false, "pdate": "2026-05-12"}
+{"t": "2026-06-20T02:31:40", "kid": "yogurt", "brand": "일동후디스", "ppu": 3583, "total": 10750, "qty": 3, "store": "롯데온", "id": "973001", "ended": false, "pdate": "2026-05-07"}
+{"t": "2026-06-20T02:31:40", "kid": "yogurt", "brand": "일동후디스", "ppu": 3700, "total": 7400, "qty": 2, "store": "", "id": "993499", "ended": false, "pdate": "2026-06-16"}
+{"t": "2026-06-20T02:31:40", "kid": "yogurt", "brand": "일동후디스", "ppu": 3950, "total": 7900, "qty": 2, "store": "", "id": "993946", "ended": false, "pdate": "2026-06-16"}
+{"t": "2026-06-20T02:31:40", "kid": "yogurt", "brand": "파예", "ppu": 3475, "total": 13900, "qty": 4, "store": "자사몰", "id": "975899", "ended": false, "pdate": "2026-05-13"}
+{"t": "2026-06-20T02:31:40", "kid": "yogurt", "brand": "파예", "ppu": 7093, "total": 21280, "qty": 3, "store": "네이버쇼핑", "id": "974907", "ended": false, "pdate": "2026-05-11"}
+{"t": "2026-06-20T02:31:40", "kid": "yogurt", "brand": "빙그레 그릭데이", "ppu": 2412, "total": 19300, "qty": 8, "store": "톡딜", "id": "982472", "ended": false, "pdate": "2026-05-26"}
+{"t": "2026-06-20T02:31:40", "kid": "yogurt", "brand": "빙그레 그릭데이", "ppu": 4660, "total": 13980, "qty": 3, "store": "G마켓", "id": "977995", "ended": false, "pdate": "2026-05-17"}
+{"t": "2026-06-20T02:31:40", "kid": "yogurt", "brand": "빙그레 그릭데이", "ppu": 2331, "total": 13990, "qty": 6, "store": "G마켓", "id": "971893", "ended": false, "pdate": "2026-05-06"}
+{"t": "2026-06-20T02:31:40", "kid": "yogurt", "brand": "트웬티", "ppu": 3780, "total": 18900, "qty": 5, "store": "네이버쇼핑", "id": "965506", "ended": false, "pdate": "2026-04-21"}
+{"t": "2026-06-20T02:31:40", "kid": "yogurt", "brand": "트웬티", "ppu": 3600, "total": 18000, "qty": 5, "store": "", "id": "966162", "ended": false, "pdate": "2026-04-22"}
+{"t": "2026-06-20T02:31:40", "kid": "myprotein", "brand": "마이프로틴", "ppu": 148382, "total": 148382, "qty": 1, "store": "마이프로틴", "id": "938934", "ended": false, "pdate": "2026-02-16"}
+{"t": "2026-06-20T02:31:40", "kid": "forerunner570", "brand": "가민 포러너 570", "ppu": 679000, "total": 679000, "qty": 1, "store": "가민", "id": "930110", "ended": false, "pdate": "2026-01-26"}
+{"t": "2026-06-20T02:31:40", "kid": "forerunner570", "brand": "가민 포러너 570", "ppu": 679000, "total": 679000, "qty": 1, "store": "런미새", "id": "930621", "ended": false, "pdate": "2026-01-27"}
+{"t": "2026-06-20T02:31:40", "kid": "mxmaster", "brand": "Master 3 / 3S", "ppu": 89305, "total": 89305, "qty": 1, "store": "Aliexpress", "id": "989014", "ended": false, "pdate": "2026-06-08"}
+{"t": "2026-06-20T02:31:40", "kid": "mxmaster", "brand": "Master 3 / 3S", "ppu": 71362, "total": 71362, "qty": 1, "store": "Aliexpress", "id": "943032", "ended": false, "pdate": "2026-03-01"}
+{"t": "2026-06-20T02:31:40", "kid": "mxmaster", "brand": "Master 3 / 3S", "ppu": 72183, "total": 72183, "qty": 1, "store": "Aliexpress", "id": "929606", "ended": false, "pdate": "2026-01-25"}
+{"t": "2026-06-20T02:31:40", "kid": "mxmaster", "brand": "Master 3 / 3S", "ppu": 71223, "total": 71223, "qty": 1, "store": "Aliexpress", "id": "929423", "ended": false, "pdate": "2026-01-25"}
+{"t": "2026-06-20T02:31:40", "kid": "mxmaster", "brand": "Master 3 / 3S", "ppu": 68189, "total": 68189, "qty": 1, "store": "Aliexpress", "id": "926991", "ended": false, "pdate": "2026-01-19"}
+{"t": "2026-06-20T02:31:40", "kid": "mxmaster", "brand": "Master 3 / 3S", "ppu": 69149, "total": 69149, "qty": 1, "store": "Aliexpress", "id": "924084", "ended": false, "pdate": "2026-01-12"}
+{"t": "2026-06-20T02:31:40", "kid": "mxmaster", "brand": "Master 3 / 3S", "ppu": 69629, "total": 69629, "qty": 1, "store": "Aliexpress", "id": "921207", "ended": false, "pdate": "2026-01-03"}
+{"t": "2026-06-20T02:31:40", "kid": "mxmaster", "brand": "Master 3 / 3S", "ppu": 74985, "total": 74985, "qty": 1, "store": "Aliexpress", "id": "920832", "ended": false, "pdate": "2026-01-01"}
+{"t": "2026-06-20T02:31:40", "kid": "mxmaster", "brand": "Master 3 / 3S", "ppu": 119309, "total": 119309, "qty": 1, "store": "Aliexpress", "id": "986705", "ended": false, "pdate": "2026-06-03"}
+{"t": "2026-06-20T02:31:40", "kid": "mxmaster", "brand": "Master 4", "ppu": 179400, "total": 179400, "qty": 1, "store": "롯데온", "id": "989345", "ended": false, "pdate": "2026-06-08"}
+{"t": "2026-06-20T02:31:40", "kid": "mxmaster", "brand": "Master 4", "ppu": 124196, "total": 124196, "qty": 1, "store": "Aliexpress", "id": "953614", "ended": false, "pdate": "2026-03-25"}
+{"t": "2026-06-20T02:31:40", "kid": "mxmaster", "brand": "Master 4", "ppu": 131528, "total": 131528, "qty": 1, "store": "기타", "id": "942448", "ended": false, "pdate": "2026-02-27"}
+{"t": "2026-06-20T02:31:40", "kid": "mxmaster", "brand": "Master 4", "ppu": 131528, "total": 131528, "qty": 1, "store": "크로켓", "id": "942267", "ended": false, "pdate": "2026-02-26"}
+{"t": "2026-06-20T02:31:40", "kid": "mxmaster", "brand": "Master 4", "ppu": 146900, "total": 146900, "qty": 1, "store": "롯데온", "id": "936622", "ended": false, "pdate": "2026-02-09"}
+{"t": "2026-06-20T02:31:40", "kid": "mxmaster", "brand": "Master 4", "ppu": 109000, "total": 109000, "qty": 1, "store": "하이마트", "id": "920875", "ended": false, "pdate": "2026-01-01"}
+{"t": "2026-06-20T02:31:40", "kid": "mxmaster", "brand": "Master 4", "ppu": 134620, "total": 134620, "qty": 1, "store": "G마켓", "id": "920660", "ended": false, "pdate": "2026-01-01"}
+{"t": "2026-06-20T02:31:40", "kid": "mxmaster", "brand": "Master 4", "ppu": 132276, "total": 132276, "qty": 1, "store": "Aliexpress", "id": "987257", "ended": false, "pdate": "2026-06-04"}
+{"t": "2026-06-20T02:31:40", "kid": "mxmaster", "brand": "Master 4", "ppu": 136301, "total": 136301, "qty": 1, "store": "알리익스프레스", "id": "950053", "ended": false, "pdate": "2026-03-17"}
+{"t": "2026-06-20T02:31:40", "kid": "buds4pro", "brand": "버즈4 프로", "ppu": 359000, "total": 359000, "qty": 1, "store": "G마켓", "id": "991801", "ended": false, "pdate": "2026-06-12"}
+{"t": "2026-06-20T02:31:40", "kid": "buds4pro", "brand": "버즈4 프로", "ppu": 359000, "total": 359000, "qty": 1, "store": "네이버쇼핑", "id": "989400", "ended": false, "pdate": "2026-06-09"}
+{"t": "2026-06-20T02:31:40", "kid": "buds4pro", "brand": "버즈4 프로", "ppu": 239000, "total": 239000, "qty": 1, "store": "크로켓", "id": "988951", "ended": false, "pdate": "2026-06-08"}
+{"t": "2026-06-20T02:31:40", "kid": "buds4pro", "brand": "버즈4 프로", "ppu": 248970, "total": 248970, "qty": 1, "store": "G마켓", "id": "989182", "ended": false, "pdate": "2026-06-08"}
+{"t": "2026-06-20T02:31:40", "kid": "buds4pro", "brand": "버즈4 프로", "ppu": 255800, "total": 255800, "qty": 1, "store": "롯데온", "id": "986684", "ended": false, "pdate": "2026-06-03"}
+{"t": "2026-06-20T02:31:40", "kid": "buds4pro", "brand": "버즈4 프로", "ppu": 247140, "total": 247140, "qty": 1, "store": "G마켓", "id": "985939", "ended": false, "pdate": "2026-06-02"}
+{"t": "2026-06-20T02:31:40", "kid": "buds4pro", "brand": "버즈4 프로", "ppu": 247510, "total": 247510, "qty": 1, "store": "G마켓", "id": "982927", "ended": false, "pdate": "2026-05-27"}
+{"t": "2026-06-20T02:31:40", "kid": "buds4pro", "brand": "버즈4 프로", "ppu": 280924, "total": 280924, "qty": 1, "store": "G마켓", "id": "977206", "ended": false, "pdate": "2026-05-15"}
+{"t": "2026-06-20T02:31:40", "kid": "buds4pro", "brand": "버즈4 프로", "ppu": 274480, "total": 274480, "qty": 1, "store": "롯데온", "id": "972908", "ended": false, "pdate": "2026-05-07"}
+{"t": "2026-06-20T02:31:40", "kid": "buds4pro", "brand": "버즈4 프로", "ppu": 359000, "total": 359000, "qty": 1, "store": "", "id": "994507", "ended": false, "pdate": "2026-06-17"}
+{"t": "2026-06-20T02:31:40", "kid": "buds4pro", "brand": "버즈4 일반", "ppu": 239580, "total": 239580, "qty": 1, "store": "11번가", "id": "972175", "ended": false, "pdate": "2026-05-06"}
+{"t": "2026-06-20T02:31:40", "kid": "buds4pro", "brand": "버즈4 일반", "ppu": 243460, "total": 243460, "qty": 1, "store": "네이버쇼핑", "id": "966590", "ended": false, "pdate": "2026-04-23"}
+{"t": "2026-06-20T02:31:40", "kid": "buds4pro", "brand": "버즈4 일반", "ppu": 243500, "total": 243500, "qty": 1, "store": "네이버쇼핑", "id": "966517", "ended": false, "pdate": "2026-04-23"}
+{"t": "2026-06-20T02:31:40", "kid": "airpods", "brand": "에어팟 프로 2", "ppu": 308480, "total": 308480, "qty": 1, "store": "Apple", "id": "971226", "ended": false, "pdate": "2026-05-04"}
+{"t": "2026-06-20T02:31:40", "kid": "airpods", "brand": "에어팟 프로 2", "ppu": 308480, "total": 308480, "qty": 1, "store": "쿠팡", "id": "970969", "ended": false, "pdate": "2026-05-03"}
+{"t": "2026-06-20T02:31:40", "kid": "airpods", "brand": "에어팟 프로 2", "ppu": 339480, "total": 339480, "qty": 1, "store": "쿠팡", "id": "948904", "ended": false, "pdate": "2026-03-15"}
+{"t": "2026-06-20T02:31:40", "kid": "airpods", "brand": "에어팟 4세대", "ppu": 224990, "total": 224990, "qty": 1, "store": "G마켓", "id": "974948", "ended": false, "pdate": "2026-05-11"}
+{"t": "2026-06-20T02:31:40", "kid": "airpods", "brand": "에어팟 4세대", "ppu": 156560, "total": 156560, "qty": 1, "store": "G마켓", "id": "972474", "ended": false, "pdate": "2026-05-06"}
+{"t": "2026-06-20T02:31:40", "kid": "airpods", "brand": "에어팟 4세대", "ppu": 220100, "total": 220100, "qty": 1, "store": "쿠팡", "id": "967931", "ended": false, "pdate": "2026-04-26"}
+{"t": "2026-06-20T02:31:40", "kid": "airpods", "brand": "에어팟 4세대", "ppu": 169900, "total": 169900, "qty": 1, "store": "기타", "id": "919374", "ended": false, "pdate": "2025-12-26"}
+{"t": "2026-06-20T02:31:40", "kid": "airpods", "brand": "에어팟 4세대", "ppu": 169900, "total": 169900, "qty": 1, "store": "크로켓", "id": "919340", "ended": false, "pdate": "2025-12-26"}
+{"t": "2026-06-20T02:31:40", "kid": "airpods", "brand": "에어팟 4세대", "ppu": 159000, "total": 159000, "qty": 1, "store": "", "id": "977828", "ended": false, "pdate": "2026-05-17"}
+{"t": "2026-06-20T02:31:40", "kid": "airpods", "brand": "에어팟 4세대", "ppu": 224190, "total": 224190, "qty": 1, "store": "", "id": "972087", "ended": false, "pdate": "2026-05-06"}
+{"t": "2026-06-20T02:31:40", "kid": "xiaomi_powerbank", "brand": "샤오미 슬림 보조배터리", "ppu": 66820, "total": 66820, "qty": 1, "store": "네이버쇼핑", "id": "931899", "ended": false, "pdate": "2026-01-30"}
+{"t": "2026-06-20T02:31:40", "kid": "xiaomi_powerbank", "brand": "샤오미 슬림 보조배터리", "ppu": 11800, "total": 11800, "qty": 1, "store": "mi.com", "id": "924435", "ended": false, "pdate": "2026-01-12"}
+{"t": "2026-06-20T02:31:40", "kid": "xiaomi_powerbank", "brand": "샤오미 슬림 보조배터리", "ppu": 65900, "total": 65900, "qty": 1, "store": "롯데온", "id": "924962", "ended": false, "pdate": "2026-01-13"}
+{"t": "2026-06-20T02:31:40", "kid": "xiaomi_powerbank", "brand": "샤오미 슬림 보조배터리", "ppu": 66900, "total": 66900, "qty": 1, "store": "롯데온", "id": "924460", "ended": false, "pdate": "2026-01-12"}
+{"t": "2026-06-20T02:31:40", "kid": "xiaomi_powerbank", "brand": "샤오미 슬림 보조배터리", "ppu": 19800, "total": 19800, "qty": 1, "store": "mi.com", "id": "923691", "ended": false, "pdate": "2026-01-10"}
+{"t": "2026-06-20T02:31:40", "kid": "xiaomi_powerbank", "brand": "샤오미 슬림 보조배터리", "ppu": 69710, "total": 69710, "qty": 1, "store": "G마켓", "id": "990382", "ended": false, "pdate": "2026-06-10"}
+{"t": "2026-06-20T02:31:40", "kid": "xiaomi_powerbank", "brand": "샤오미 슬림 보조배터리", "ppu": 9800, "total": 9800, "qty": 1, "store": "mi.com", "id": "924591", "ended": false, "pdate": "2026-01-12"}
+{"t": "2026-06-20T02:31:40", "kid": "soymilk", "brand": "두유 박스", "ppu": 520, "total": 7800, "qty": 15, "store": "토스쇼핑", "id": "973155", "ended": false, "pdate": "2026-05-08"}
+{"t": "2026-06-20T02:31:40", "kid": "soymilk", "brand": "두유 박스", "ppu": 272, "total": 17410, "qty": 64, "store": "네이버쇼핑", "id": "995295", "ended": false, "pdate": "2026-06-18"}
+{"t": "2026-06-20T02:31:40", "kid": "soymilk", "brand": "두유 박스", "ppu": 495, "total": 7930, "qty": 16, "store": "쿠팡", "id": "988721", "ended": false, "pdate": "2026-06-08"}
+{"t": "2026-06-20T02:31:40", "kid": "soymilk", "brand": "두유 박스", "ppu": 467, "total": 29900, "qty": 64, "store": "네이버쇼핑", "id": "978206", "ended": false, "pdate": "2026-05-17"}
+{"t": "2026-06-20T02:31:40", "kid": "soymilk", "brand": "두유 박스", "ppu": 538, "total": 8610, "qty": 16, "store": "쿠팡", "id": "988011", "ended": false, "pdate": "2026-06-06"}
+{"t": "2026-06-20T02:31:40", "kid": "soymilk", "brand": "두유 박스", "ppu": 469, "total": 37530, "qty": 80, "store": "G마켓", "id": "986282", "ended": false, "pdate": "2026-06-02"}
+{"t": "2026-06-20T02:31:40", "kid": "soymilk", "brand": "두유 박스", "ppu": 374, "total": 26980, "qty": 72, "store": "11번가", "id": "985585", "ended": false, "pdate": "2026-06-01"}
+{"t": "2026-06-20T02:31:40", "kid": "soymilk", "brand": "두유 박스", "ppu": 568, "total": 27305, "qty": 48, "store": "카카오", "id": "985531", "ended": false, "pdate": "2026-06-01"}
+{"t": "2026-06-20T02:31:40", "kid": "soymilk", "brand": "두유 박스", "ppu": 512, "total": 16400, "qty": 32, "store": "네이버쇼핑", "id": "984613", "ended": false, "pdate": "2026-05-31"}
+{"t": "2026-06-20T02:31:40", "kid": "soymilk", "brand": "두유 박스", "ppu": 381, "total": 18310, "qty": 48, "store": "네이버쇼핑", "id": "983732", "ended": false, "pdate": "2026-05-28"}
+{"t": "2026-06-20T02:31:40", "kid": "soymilk", "brand": "두유 박스", "ppu": 587, "total": 28210, "qty": 48, "store": "네이버쇼핑", "id": "983374", "ended": false, "pdate": "2026-05-28"}
+{"t": "2026-06-20T02:31:40", "kid": "soymilk", "brand": "두유 박스", "ppu": 393, "total": 18900, "qty": 48, "store": "G마켓", "id": "975271", "ended": false, "pdate": "2026-05-12"}
+{"t": "2026-06-20T02:31:40", "kid": "soymilk", "brand": "두유 박스", "ppu": 596, "total": 14320, "qty": 24, "store": "매일유업", "id": "995209", "ended": false, "pdate": "2026-06-18"}
+{"t": "2026-06-20T02:31:40", "kid": "soymilk", "brand": "두유 박스", "ppu": 649, "total": 15590, "qty": 24, "store": "쿠팡", "id": "993574", "ended": false, "pdate": "2026-06-16"}
+{"t": "2026-06-20T02:31:40", "kid": "soymilk", "brand": "두유 박스", "ppu": 552, "total": 26530, "qty": 48, "store": "G마켓", "id": "993464", "ended": false, "pdate": "2026-06-15"}
+{"t": "2026-06-20T02:31:40", "kid": "soymilk", "brand": "두유 박스", "ppu": 539, "total": 25900, "qty": 48, "store": "Ns몰", "id": "991955", "ended": false, "pdate": "2026-06-13"}
+{"t": "2026-06-20T02:31:40", "kid": "soymilk", "brand": "두유 박스", "ppu": 1075, "total": 12900, "qty": 12, "store": "토스쇼핑", "id": "991542", "ended": false, "pdate": "2026-06-12"}
+{"t": "2026-06-20T02:31:40", "kid": "soymilk", "brand": "두유 박스", "ppu": 639, "total": 30712, "qty": 48, "store": "오늘의집", "id": "990210", "ended": false, "pdate": "2026-06-10"}
+{"t": "2026-06-20T02:31:40", "kid": "soymilk", "brand": "두유 박스", "ppu": 554, "total": 13310, "qty": 24, "store": "쿠팡", "id": "988716", "ended": false, "pdate": "2026-06-08"}
+{"t": "2026-06-20T02:31:40", "kid": "laundry_detergent", "brand": "세탁세제", "ppu": 7640, "total": 22920, "qty": 3, "store": "G마켓", "id": "991614", "ended": false, "pdate": "2026-06-12"}
+{"t": "2026-06-20T02:31:40", "kid": "laundry_detergent", "brand": "세탁세제", "ppu": 4101, "total": 24610, "qty": 6, "store": "11번가", "id": "990924", "ended": false, "pdate": "2026-06-11"}
+{"t": "2026-06-20T02:31:40", "kid": "laundry_detergent", "brand": "세탁세제", "ppu": 6560, "total": 19680, "qty": 3, "store": "G마켓", "id": "978531", "ended": false, "pdate": "2026-05-18"}
+{"t": "2026-06-20T02:31:40", "kid": "laundry_detergent", "brand": "세탁세제", "ppu": 7216, "total": 21650, "qty": 3, "store": "G마켓", "id": "977133", "ended": false, "pdate": "2026-05-15"}
+{"t": "2026-06-20T02:31:40", "kid": "laundry_detergent", "brand": "세탁세제", "ppu": 6725, "total": 26900, "qty": 4, "store": "네이버쇼핑", "id": "969222", "ended": false, "pdate": "2026-04-29"}
+{"t": "2026-06-20T02:31:40", "kid": "laundry_detergent", "brand": "세탁세제", "ppu": 12710, "total": 25420, "qty": 2, "store": "GS샵", "id": "965704", "ended": false, "pdate": "2026-04-21"}
+{"t": "2026-06-20T02:31:40", "kid": "laundry_detergent", "brand": "세탁세제", "ppu": 7633, "total": 22900, "qty": 3, "store": "카카오", "id": "992579", "ended": false, "pdate": "2026-06-14"}
+{"t": "2026-06-20T02:31:40", "kid": "laundry_detergent", "brand": "세탁세제", "ppu": 9325, "total": 18650, "qty": 2, "store": "G마켓", "id": "973769", "ended": false, "pdate": "2026-05-09"}
+{"t": "2026-06-20T02:31:40", "kid": "laundry_detergent", "brand": "세탁세제", "ppu": 7080, "total": 14160, "qty": 2, "store": "11번가", "id": "972576", "ended": false, "pdate": "2026-05-07"}
+{"t": "2026-06-20T02:31:40", "kid": "laundry_detergent", "brand": "세탁세제", "ppu": 7633, "total": 22900, "qty": 3, "store": "카카오톡", "id": "972312", "ended": false, "pdate": "2026-05-06"}
+{"t": "2026-06-20T02:31:40", "kid": "laundry_detergent", "brand": "세탁세제", "ppu": 9312, "total": 55872, "qty": 6, "store": "오늘의집", "id": "994736", "ended": false, "pdate": "2026-06-17"}
+{"t": "2026-06-20T02:31:40", "kid": "laundry_detergent", "brand": "세탁세제", "ppu": 8690, "total": 17380, "qty": 2, "store": "쿠팡", "id": "990052", "ended": false, "pdate": "2026-06-10"}
+{"t": "2026-06-20T02:31:40", "kid": "laundry_detergent", "brand": "세탁세제", "ppu": 6000, "total": 18000, "qty": 3, "store": "", "id": "993882", "ended": false, "pdate": "2026-06-16"}
+{"t": "2026-06-20T02:31:40", "kid": "fabric_softener", "brand": "섬유유연제", "ppu": 3350, "total": 13400, "qty": 4, "store": "G마켓", "id": "991794", "ended": false, "pdate": "2026-06-12"}
+{"t": "2026-06-20T02:31:40", "kid": "fabric_softener", "brand": "섬유유연제", "ppu": 4313, "total": 25880, "qty": 6, "store": "롯데온", "id": "978367", "ended": false, "pdate": "2026-05-18"}
+{"t": "2026-06-20T02:31:40", "kid": "fabric_softener", "brand": "섬유유연제", "ppu": 5496, "total": 16490, "qty": 3, "store": "쿠팡", "id": "988012", "ended": false, "pdate": "2026-06-06"}
+{"t": "2026-06-20T02:31:40", "kid": "fabric_softener", "brand": "섬유유연제", "ppu": 4726, "total": 28360, "qty": 6, "store": "11번가", "id": "984823", "ended": false, "pdate": "2026-05-31"}
+{"t": "2026-06-20T02:31:40", "kid": "fabric_softener", "brand": "섬유유연제", "ppu": 4694, "total": 23470, "qty": 5, "store": "톡딜", "id": "971908", "ended": false, "pdate": "2026-05-06"}
+{"t": "2026-06-20T02:31:40", "kid": "fabric_softener", "brand": "섬유유연제", "ppu": 5345, "total": 32070, "qty": 6, "store": "11번가", "id": "968806", "ended": false, "pdate": "2026-04-28"}
+{"t": "2026-06-20T02:31:40", "kid": "fabric_softener", "brand": "섬유유연제", "ppu": 3225, "total": 12900, "qty": 4, "store": "G마켓", "id": "984985", "ended": false, "pdate": "2026-06-01"}
+{"t": "2026-06-20T02:31:40", "kid": "fabric_softener", "brand": "섬유유연제", "ppu": 3300, "total": 9900, "qty": 3, "store": "오늘의집", "id": "996200", "ended": false, "pdate": "2026-06-20"}
+{"t": "2026-06-20T02:31:40", "kid": "fabric_softener", "brand": "섬유유연제", "ppu": 3455, "total": 13820, "qty": 4, "store": "쿠팡", "id": "992415", "ended": false, "pdate": "2026-06-14"}
+{"t": "2026-06-20T02:31:40", "kid": "fabric_softener", "brand": "섬유유연제", "ppu": 4326, "total": 12978, "qty": 3, "store": "오늘의집", "id": "991932", "ended": false, "pdate": "2026-06-13"}
+{"t": "2026-06-20T02:31:40", "kid": "fabric_softener", "brand": "섬유유연제", "ppu": 3655, "total": 14620, "qty": 4, "store": "쿠팡", "id": "990601", "ended": false, "pdate": "2026-06-11"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 496, "total": 14890, "qty": 30, "store": "쿠팡", "id": "994273", "ended": false, "pdate": "2026-06-17"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 431, "total": 25890, "qty": 60, "store": "G마켓", "id": "990145", "ended": false, "pdate": "2026-06-10"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 623, "total": 29910, "qty": 48, "store": "kt멤버십", "id": "990125", "ended": false, "pdate": "2026-06-10"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 518, "total": 24900, "qty": 48, "store": "오늘의집", "id": "990013", "ended": false, "pdate": "2026-06-10"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 560, "total": 26900, "qty": 48, "store": "오늘의집", "id": "971026", "ended": false, "pdate": "2026-05-04"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 479, "total": 28780, "qty": 60, "store": "옥션", "id": "988958", "ended": false, "pdate": "2026-06-08"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 830, "total": 19930, "qty": 24, "store": "롯데온", "id": "988025", "ended": false, "pdate": "2026-06-06"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 565, "total": 13570, "qty": 24, "store": "쿠팡", "id": "985162", "ended": false, "pdate": "2026-06-01"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 489, "total": 23492, "qty": 48, "store": "오늘의집", "id": "985062", "ended": false, "pdate": "2026-06-01"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 478, "total": 22970, "qty": 48, "store": "롯데온", "id": "975990", "ended": false, "pdate": "2026-05-13"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 540, "total": 25920, "qty": 48, "store": "KT멤버십", "id": "975313", "ended": false, "pdate": "2026-05-12"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 436, "total": 26170, "qty": 60, "store": "G마켓", "id": "975205", "ended": false, "pdate": "2026-05-12"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 468, "total": 22497, "qty": 48, "store": "오늘의집", "id": "973692", "ended": false, "pdate": "2026-05-09"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 477, "total": 22900, "qty": 48, "store": "네이버쇼핑", "id": "973380", "ended": false, "pdate": "2026-05-08"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 498, "total": 44900, "qty": 90, "store": "깨끗한나라몰", "id": "995357", "ended": false, "pdate": "2026-06-18"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 454, "total": 10900, "qty": 24, "store": "GS샵", "id": "995108", "ended": false, "pdate": "2026-06-18"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 448, "total": 26900, "qty": 60, "store": "G마켓", "id": "992992", "ended": false, "pdate": "2026-06-15"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 465, "total": 27900, "qty": 60, "store": "카카오", "id": "992502", "ended": false, "pdate": "2026-06-14"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 438, "total": 26290, "qty": 60, "store": "G마켓", "id": "991378", "ended": false, "pdate": "2026-06-12"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 432, "total": 38930, "qty": 90, "store": "롯데온", "id": "990564", "ended": false, "pdate": "2026-06-11"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 421, "total": 37900, "qty": 90, "store": "롯데온", "id": "984128", "ended": false, "pdate": "2026-05-29"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 363, "total": 10900, "qty": 30, "store": "Gs샵", "id": "980949", "ended": false, "pdate": "2026-05-22"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 515, "total": 30900, "qty": 60, "store": "깨끗한나라몰", "id": "978823", "ended": false, "pdate": "2026-05-18"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 399, "total": 11990, "qty": 30, "store": "GS샵", "id": "976075", "ended": false, "pdate": "2026-05-13"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 430, "total": 12900, "qty": 30, "store": "올웨이즈", "id": "975294", "ended": false, "pdate": "2026-05-12"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 660, "total": 7920, "qty": 12, "store": "gs샵", "id": "969355", "ended": false, "pdate": "2026-04-29"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 597, "total": 17910, "qty": 30, "store": "롯데온", "id": "965677", "ended": false, "pdate": "2026-04-21"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 342, "total": 20525, "qty": 60, "store": "오늘의집", "id": "995583", "ended": false, "pdate": "2026-06-19"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 325, "total": 19525, "qty": 60, "store": "오늘의집", "id": "995572", "ended": false, "pdate": "2026-06-19"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 415, "total": 19930, "qty": 48, "store": "오늘의집", "id": "995558", "ended": false, "pdate": "2026-06-19"}
+{"t": "2026-06-20T02:31:40", "kid": "toilet_paper", "brand": "화장지", "ppu": 315, "total": 18900, "qty": 60, "store": "롯데온", "id": "995203", "ended": false, "pdate": "2026-06-18"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 5520, "total": 16560, "qty": 3, "store": "오늘의집", "id": "994939", "ended": false, "pdate": "2026-06-18"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 2576, "total": 7730, "qty": 3, "store": "G마켓", "id": "994489", "ended": false, "pdate": "2026-06-17"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 5300, "total": 15900, "qty": 3, "store": "G마켓", "id": "992478", "ended": false, "pdate": "2026-06-14"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 5999, "total": 11999, "qty": 2, "store": "W컨셉", "id": "991062", "ended": false, "pdate": "2026-06-11"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 5219, "total": 15657, "qty": 3, "store": "GS SHOP", "id": "989572", "ended": false, "pdate": "2026-06-09"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 5942, "total": 17828, "qty": 3, "store": "기타", "id": "987941", "ended": false, "pdate": "2026-06-06"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 5520, "total": 11040, "qty": 2, "store": "G마켓", "id": "976873", "ended": false, "pdate": "2026-05-15"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 4890, "total": 14670, "qty": 3, "store": "G마켓", "id": "974347", "ended": false, "pdate": "2026-05-10"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 3533, "total": 10600, "qty": 3, "store": "옥션", "id": "982073", "ended": false, "pdate": "2026-05-25"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 3566, "total": 10700, "qty": 3, "store": "G마켓", "id": "975266", "ended": false, "pdate": "2026-05-12"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 3833, "total": 11500, "qty": 3, "store": "G마켓", "id": "974832", "ended": false, "pdate": "2026-05-11"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 3966, "total": 11900, "qty": 3, "store": "G마켓", "id": "995871", "ended": false, "pdate": "2026-06-19"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 5907, "total": 11815, "qty": 2, "store": "무신사", "id": "987251", "ended": false, "pdate": "2026-06-04"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 4080, "total": 12240, "qty": 3, "store": "GS샵", "id": "982549", "ended": false, "pdate": "2026-05-26"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 6760, "total": 13520, "qty": 2, "store": "무신사", "id": "977454", "ended": false, "pdate": "2026-05-16"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 3956, "total": 11870, "qty": 3, "store": "무신사", "id": "976021", "ended": false, "pdate": "2026-05-13"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 3943, "total": 11830, "qty": 3, "store": "무신사", "id": "975967", "ended": false, "pdate": "2026-05-13"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 3975, "total": 11925, "qty": 3, "store": "무신사", "id": "968372", "ended": false, "pdate": "2026-04-27"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 5300, "total": 15900, "qty": 3, "store": "", "id": "992506", "ended": false, "pdate": "2026-06-14"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 4000, "total": 16000, "qty": 4, "store": "", "id": "985134", "ended": false, "pdate": "2026-06-01"}
+{"t": "2026-06-20T02:31:40", "kid": "body_wash", "brand": "바디워시", "ppu": 3456, "total": 10370, "qty": 3, "store": "", "id": "995878", "ended": false, "pdate": "2026-06-19"}
+{"t": "2026-06-20T02:31:40", "kid": "coffee_mix", "brand": "커피믹스", "ppu": 280, "total": 30900, "qty": 110, "store": "옥션", "id": "987067", "ended": false, "pdate": "2026-06-04"}
+{"t": "2026-06-20T02:31:40", "kid": "coffee_mix", "brand": "커피믹스", "ppu": 251, "total": 40210, "qty": 160, "store": "쿠팡", "id": "985584", "ended": false, "pdate": "2026-06-01"}
+{"t": "2026-06-20T02:31:40", "kid": "coffee_mix", "brand": "커피믹스", "ppu": 129, "total": 51760, "qty": 400, "store": "G마켓", "id": "969827", "ended": false, "pdate": "2026-04-30"}
+{"t": "2026-06-20T02:31:40", "kid": "coffee_mix", "brand": "커피믹스", "ppu": 132, "total": 52870, "qty": 400, "store": "옥션", "id": "978535", "ended": false, "pdate": "2026-05-18"}
+{"t": "2026-06-20T02:31:40", "kid": "coffee_mix", "brand": "커피믹스", "ppu": 130, "total": 52220, "qty": 400, "store": "G마켓", "id": "972233", "ended": false, "pdate": "2026-05-06"}
+{"t": "2026-06-20T02:31:40", "kid": "coffee_mix", "brand": "커피믹스", "ppu": 135, "total": 54200, "qty": 400, "store": "G마켓", "id": "974673", "ended": false, "pdate": "2026-05-11"}
+{"t": "2026-06-20T02:31:40", "kid": "coffee_mix", "brand": "커피믹스", "ppu": 142, "total": 27130, "qty": 190, "store": "G마켓", "id": "974564", "ended": false, "pdate": "2026-05-11"}
+{"t": "2026-06-20T02:31:40", "kid": "coffee_mix", "brand": "커피믹스", "ppu": 135, "total": 54210, "qty": 400, "store": "G마켓", "id": "973513", "ended": false, "pdate": "2026-05-08"}
+{"t": "2026-06-20T02:31:40", "kid": "coffee_mix", "brand": "커피믹스", "ppu": 324, "total": 38900, "qty": 120, "store": "옥션", "id": "973345", "ended": false, "pdate": "2026-05-08"}
+{"t": "2026-06-20T02:31:40", "kid": "coffee_mix", "brand": "커피믹스", "ppu": 237, "total": 47520, "qty": 200, "store": "쿠팡", "id": "985170", "ended": false, "pdate": "2026-06-01"}
+{"t": "2026-06-20T02:31:40", "kid": "coffee_mix", "brand": "커피믹스", "ppu": 90, "total": 2700, "qty": 30, "store": "네이버쇼핑", "id": "969765", "ended": false, "pdate": "2026-04-30"}
