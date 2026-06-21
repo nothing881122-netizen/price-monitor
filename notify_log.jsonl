@@ -19,3 +19,4 @@
 {"ts": "2026-06-18T17:50:22", "date": "2026-06-18", "sys": "price", "topic": "soymilk", "count": 1, "ok": 1, "fail": 0}
 {"ts": "2026-06-19T01:49:41", "date": "2026-06-19", "sys": "price", "topic": "toilet_paper", "count": 2, "ok": 1, "fail": 0}
 {"ts": "2026-06-20T20:37:34", "date": "2026-06-20", "sys": "price", "topic": "super", "count": 1, "ok": 1, "fail": 0}
+{"ts": "2026-06-21T13:38:08", "date": "2026-06-21", "sys": "price", "topic": "tuna", "count": 1, "ok": 1, "fail": 0}
