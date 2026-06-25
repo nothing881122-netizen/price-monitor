@@ -24,3 +24,4 @@
 {"ts": "2026-06-22T09:09:18", "date": "2026-06-22", "sys": "price", "topic": "mxmaster", "count": 2, "ok": 1, "fail": 0}
 {"ts": "2026-06-23T19:04:31", "date": "2026-06-23", "sys": "price", "topic": "laundry_detergent", "count": 1, "ok": 1, "fail": 0}
 {"ts": "2026-06-23T19:04:51", "date": "2026-06-23", "sys": "price", "topic": "toilet_paper", "count": 1, "ok": 1, "fail": 0}
+{"ts": "2026-06-25T20:27:11", "date": "2026-06-25", "sys": "price", "topic": "super", "count": 1, "ok": 1, "fail": 0}
