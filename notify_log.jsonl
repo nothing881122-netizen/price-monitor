@@ -25,3 +25,4 @@
 {"ts": "2026-06-23T19:04:31", "date": "2026-06-23", "sys": "price", "topic": "laundry_detergent", "count": 1, "ok": 1, "fail": 0}
 {"ts": "2026-06-23T19:04:51", "date": "2026-06-23", "sys": "price", "topic": "toilet_paper", "count": 1, "ok": 1, "fail": 0}
 {"ts": "2026-06-25T20:27:11", "date": "2026-06-25", "sys": "price", "topic": "super", "count": 1, "ok": 1, "fail": 0}
+{"ts": "2026-06-26T13:25:35", "date": "2026-06-26", "sys": "price", "topic": "tuna", "count": 1, "ok": 1, "fail": 0}
