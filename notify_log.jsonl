@@ -34,3 +34,5 @@
 {"ts": "2026-07-08T17:45:56", "date": "2026-07-08", "sys": "price", "topic": "toilet_paper", "count": 1, "ok": 1, "fail": 0}
 {"ts": "2026-07-08T17:50:50", "date": "2026-07-08", "sys": "price", "topic": "super", "count": 1, "ok": 1, "fail": 0}
 {"ts": "2026-07-09T11:27:06", "date": "2026-07-09", "sys": "price", "topic": "coffee_mix", "count": 1, "ok": 1, "fail": 0}
+{"ts": "2026-07-11T12:33:59", "date": "2026-07-11", "sys": "price", "topic": "tuna", "count": 1, "ok": 1, "fail": 0}
+{"ts": "2026-07-11T12:36:50", "date": "2026-07-11", "sys": "price", "topic": "super", "count": 1, "ok": 1, "fail": 0}
