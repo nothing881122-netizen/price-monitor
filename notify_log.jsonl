@@ -37,3 +37,5 @@
 {"ts": "2026-07-11T12:33:59", "date": "2026-07-11", "sys": "price", "topic": "tuna", "count": 1, "ok": 1, "fail": 0}
 {"ts": "2026-07-11T12:36:50", "date": "2026-07-11", "sys": "price", "topic": "super", "count": 1, "ok": 1, "fail": 0}
 {"ts": "2026-07-11T14:26:59", "date": "2026-07-11", "sys": "price", "topic": "toilet_paper", "count": 1, "ok": 1, "fail": 0}
+{"ts": "2026-07-12T12:49:27", "date": "2026-07-12", "sys": "price", "topic": "xiaomi_powerbank", "count": 1, "ok": 1, "fail": 0}
+{"ts": "2026-07-12T12:50:08", "date": "2026-07-12", "sys": "price", "topic": "toilet_paper", "count": 1, "ok": 1, "fail": 0}
